@@ -162,6 +162,27 @@
   .ide-details{margin:0 0 16px; background:var(--surface); border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow);}
   .ide-details summary{padding:14px 16px; font-weight:600; cursor:pointer; color:var(--accent);}
   .ide-details iframe{width:100%; height:480px; border:none; border-top:1px solid var(--line); border-radius:0 0 10px 10px;}
+  /* glossary + interview */
+  .searchbox{width:100%; padding:12px 14px; font:15px/1.4 inherit; font-family:inherit; color:var(--ink);
+    background:var(--surface); border:1px solid var(--line); border-radius:10px; margin:0 0 12px;}
+  .gl-row{background:var(--surface); border:1px solid var(--line); border-radius:10px; margin:0 0 8px; padding:12px 14px;}
+  .gl-term{font-weight:700; font-size:15px; cursor:pointer; display:flex; justify-content:space-between; gap:10px; -webkit-tap-highlight-color:transparent;}
+  .gl-cat{font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--accent); white-space:nowrap;}
+  .gl-def{display:none; margin-top:8px; padding-top:8px; border-top:1px solid var(--line); font-size:14.5px; max-width:66ch;}
+  .gl-row.open .gl-def{display:block}
+  #glossList.recall .gl-def{filter:none}
+  .chiprow{display:flex; gap:6px; flex-wrap:wrap; margin:0 0 12px;}
+  .chiprow .btn{padding:8px 12px; font-size:12.5px;}
+  .chiprow .btn.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .iq-row{background:var(--surface); border:1px solid var(--line); border-radius:10px; margin:0 0 8px; overflow:hidden;}
+  .iq-q{display:flex; gap:10px; align-items:flex-start; padding:12px 14px; cursor:pointer; font-weight:600; font-size:14.5px; -webkit-tap-highlight-color:transparent;}
+  .iq-dot{flex:0 0 9px; height:9px; border-radius:99px; background:var(--line); margin-top:6px;}
+  .iq-dot.know{background:var(--good)} .iq-dot.review{background:#D9A03F}
+  .iq-a{display:none; padding:0 14px 12px 33px; font-size:14.5px; max-width:66ch;}
+  .iq-row.open .iq-a{display:block}
+  .iq-btns{display:none; gap:8px; padding:0 14px 12px 33px;}
+  .iq-row.open .iq-btns{display:flex}
+  .iq-btns .btn{padding:8px 14px; font-size:13px;}
   footer{max-width:800px; margin:0 auto; padding:10px 16px 30px; color:var(--muted); font-size:12.5px;}
 </style>
 </head>
@@ -184,6 +205,8 @@
     <button role="tab" aria-selected="false" data-tab="deep">Deep Dive</button>
     <button role="tab" aria-selected="false" data-tab="exo">Exostar</button>
     <button role="tab" aria-selected="false" data-tab="sys">System</button>
+    <button role="tab" aria-selected="false" data-tab="gloss">Glossary</button>
+    <button role="tab" aria-selected="false" data-tab="iq">Interview</button>
     <button role="tab" aria-selected="false" data-tab="cards">Drill</button>
   </nav>
 </header>
@@ -207,6 +230,17 @@
     <span class="eyebrow">Progress by topic</span>
     <h3>Where you stand</h3>
     <div id="topicBars"></div>
+  </div>
+
+  <div class="card">
+    <span class="eyebrow">The 4 rules</span>
+    <h3>How learning actually sticks (everything here obeys these)</h3>
+    <ol>
+      <li><b>Never read code without a question.</b> "What does this class do?" is not a question. "Where does status become ACTIVE?" is. Find it, write <code>file:line → answer</code>, get out.</li>
+      <li><b>Type, never copy. Recall, never reread.</b> Failed recall followed by checking is what builds memory — rereading just feels good. Every reveal-tap on this site is a recall rep; don't waste it by peeking first.</li>
+      <li><b>One micro-skill at a time, then combine.</b> Blanking while writing code = doing five things at once. Isolate one, rep it, stack the next.</li>
+      <li><b>Connect every concept to real work within 48 hours.</b> Learn Optional → find one in the codebase this week. Abstract knowledge evaporates; anchored knowledge compounds.</li>
+    </ol>
   </div>
 
   <div class="card">
@@ -1640,6 +1674,39 @@ edge/LB ────┤                             ├─► SQL Always-On
   </div>
 </section>
 
+<!-- ================= GLOSSARY ================= -->
+<section id="tab-gloss" hidden>
+  <h2>Glossary — the words that make code sound harder than it is</h2>
+  <p class="lede">Every term that ever made you nod along without really knowing. Search it, tap it, learn it. <b>Recall mode</b> hides everything so you define the term out loud first.</p>
+  <input class="searchbox" id="glSearch" type="search" placeholder="Search a term… (bean, idempotent, mTLS, proxy…)">
+  <div class="chiprow" id="glCats"></div>
+  <div class="chiprow"><button class="btn" id="glRecall" type="button">🧠 Recall mode: collapse all</button></div>
+  <div id="glossList"></div>
+</section>
+
+<!-- ================= INTERVIEW ================= -->
+<section id="tab-iq" hidden>
+  <h2>Interview bank — 200+ questions, 2026 edition</h2>
+  <p class="lede">Real interview questions for Java/Spring backend roles, updated for what's asked in 2026 (virtual threads, records, auto-config debugging, tracing). Tap a question, answer OUT LOUD, then reveal and grade yourself honestly. This doubles as the deepest concept check on this site.</p>
+  <div class="card lc-summary">
+    <span class="eyebrow">Progress</span>
+    <h3><span id="iqKnowN">0</span> known · <span id="iqRevN">0</span> to review · <span id="iqTotalN">0</span> total</h3>
+    <div class="bar"><i id="iqBar" style="width:0%"></i></div>
+    <div class="deckbar" style="margin-top:12px">
+      <button class="btn primary" id="iqDrillBtn" type="button">🎤 Mock interview: 10 random</button>
+    </div>
+  </div>
+  <input class="searchbox" id="iqSearch" type="search" placeholder="Search questions…">
+  <div class="chiprow" id="iqCats"></div>
+  <div class="chiprow">
+    <button class="btn on" data-sf="all" type="button">All</button>
+    <button class="btn" data-sf="new" type="button">New</button>
+    <button class="btn" data-sf="review" type="button">Review</button>
+    <button class="btn" data-sf="know" type="button">Known</button>
+  </div>
+  <div id="iqList"></div>
+</section>
+
 <!-- ================= DRILL (flashcards + quiz) ================= -->
 <section id="tab-cards" hidden>
   <h2>Drill — recall beats rereading</h2>
@@ -2191,28 +2258,430 @@ document.querySelectorAll('#lcFilters .btn').forEach(b => b.addEventListener('cl
 }));
 lcSummary(); renderLC();
 
+// ---------- glossary ----------
+const GLOSSARY = [
+ ["bean","Spring","An object Spring creates and manages for you (singleton by default). If you didn't write new, it came from the container."],
+ ["container / ApplicationContext","Spring","The registry Spring builds at startup: scans classes, creates beans, injects dependencies. THE Spring mental model."],
+ ["dependency injection (DI)","Spring","Classes declare what they need in the constructor; the container passes it in. Enables testing with fakes and swapping implementations."],
+ ["IoC (inversion of control)","Spring","You don't build and wire objects — the framework does and calls YOUR code. DI is the main form of it."],
+ ["proxy","Spring","A wrapper object standing in front of your bean that intercepts calls to add behavior (transactions, security, async). Why this.method() skips @Transactional."],
+ ["AOP","Spring","Aspect-oriented programming: cross-cutting behavior (logging, transactions) applied around methods via proxies instead of copy-pasted into each one."],
+ ["annotation","Java","Metadata on code (@Service, @Override) that tools and frameworks read — annotations DO nothing by themselves; a processor acts on them."],
+ ["reflection","Java","Code inspecting/calling classes and methods at runtime by name. How Spring finds your annotated classes and Jackson fills your DTOs."],
+ ["classpath","Java","The list of JARs and folders the JVM searches for classes. 'It works locally' vs 'ClassNotFoundException in prod' = classpath difference."],
+ ["artifact","Build","The built output of a project — a JAR or WAR with a name and version. What pipelines publish and deploy."],
+ ["JAR / WAR","Build","JAR: a zip of compiled classes, runnable or a library. WAR: a web-app archive deployed into a servlet container like Tomcat."],
+ ["POM / Maven","Build","pom.xml declares dependencies, versions, and build steps. Maven downloads dependencies and produces the artifact."],
+ ["servlet / servlet container","Web","A servlet handles HTTP requests in Java; Tomcat is the container that manages servlets, threads, and sockets. Spring MVC sits on one servlet (DispatcherServlet)."],
+ ["thread","Java","One independent path of execution. Every HTTP request runs on its own thread; shared objects need care."],
+ ["thread pool","Java","A fixed set of reusable threads. Tomcat's worker pool is your service's concurrency ceiling — exhaust it and the service 'hangs' while alive."],
+ ["heap / stack","JVM","Heap: shared memory where objects live (GC cleans it). Stack: per-thread frames holding locals — why locals are thread-safe."],
+ ["garbage collection (GC)","JVM","The JVM automatically frees heap objects nothing references. Leaks = objects still referenced that you'll never use again."],
+ ["bytecode / JIT","JVM","Java compiles to bytecode; the JVM runs it and the JIT compiler turns hot paths into native machine code at runtime."],
+ ["POJO","Java","Plain Old Java Object — a simple class with fields and methods, no framework requirements."],
+ ["DTO","Design","Data Transfer Object: the shape of data crossing a boundary (usually JSON). Deliberately separate from DB entities."],
+ ["entity","Design","A class mapped to a database table (JPA @Entity, or Torque peer). One instance ≈ one row."],
+ ["ORM","Database","Object-relational mapping: rows ↔ objects automatically (Hibernate, Torque). Convenient until you must know the SQL it generates."],
+ ["JDBC","Database","The low-level Java API for SQL: connections, prepared statements, result sets. Everything else (JPA, JdbcTemplate) wraps it."],
+ ["JPA / Hibernate","Database","JPA is the standard API for ORM; Hibernate is the most common implementation; Spring Data JPA adds repositories on top."],
+ ["connection pool","Database","A reusable set of open DB connections. Leak them (missing finally) and the app 'hangs' hours later — classic incident."],
+ ["transaction","Database","A group of statements that commit or roll back as one. The unit of data consistency."],
+ ["ACID","Database","Atomic (all or nothing), Consistent (rules hold), Isolated (concurrent txns don't corrupt), Durable (committed = survives crash)."],
+ ["isolation level","Database","How much a transaction sees of others' in-flight changes (read committed, snapshot…). Trades correctness vs concurrency."],
+ ["index","Database","A sorted structure for fast lookup. Seek = fast, scan = slow; functions around a column kill it."],
+ ["CTE","Database","Common Table Expression — WITH name AS (…): a named intermediate result that makes big queries readable, step by step."],
+ ["window function","Database","Computes across rows WITHOUT collapsing them (ROW_NUMBER, LAG). THE tool for 'latest X per Y'."],
+ ["serialization","Java","Turning an object into bytes/text (JSON) and back. Jackson does JSON ↔ object in Spring."],
+ ["marshalling","Java","Same idea as serialization, usually said of XML/SOAP conversions."],
+ ["immutable","Design","Cannot change after construction. Automatically thread-safe, safe to share and cache. Records are immutable by default."],
+ ["idempotent","Design","Doing it twice = doing it once. Required for message consumers (at-least-once delivery) and safe retries."],
+ ["race condition","Concurrency","Two threads interleave on shared state and produce a wrong result that depends on timing. Intermittent by nature."],
+ ["deadlock","Concurrency","Two holders each waiting for the other's lock — circular wait, nobody proceeds. DBs kill a victim; JVMs just freeze."],
+ ["mutex / lock","Concurrency","A mechanism allowing one thread at a time into a section (synchronized, ReentrantLock)."],
+ ["atomic","Concurrency","An operation that completes as one indivisible step (AtomicInteger.incrementAndGet, DB row update). counter++ is NOT atomic."],
+ ["volatile","Concurrency","Guarantees threads see the latest written value (visibility). Does NOT make compound operations atomic."],
+ ["latency vs throughput","Performance","Latency: how long one request takes. Throughput: how many complete per second. Optimizing one can hurt the other."],
+ ["REST","API","HTTP + resources + verbs (GET/POST/PUT/DELETE) + statelessness. The style all your services speak."],
+ ["endpoint","API","One URL + method a service exposes, e.g. POST /v1/users/{ref}/credentials."],
+ ["payload","API","The body of a request or response — the JSON."],
+ ["webhook","API","THEY call YOU when something happens (push), instead of you polling them."],
+ ["polling","API","Repeatedly asking 'anything new?'. Simple, wasteful, adds delay; queues and webhooks replace it."],
+ ["message queue / bus","Architecture","Middleware that stores messages between producer and consumer (Azure Service Bus). Decouples: sender moves on, receiver processes later."],
+ ["pub/sub","Architecture","Publishers emit events to topics; any number of subscribers receive them. Producers don't know consumers."],
+ ["event-driven","Architecture","Services react to events ('credAdded') rather than being called directly. Loose coupling, eventual consistency."],
+ ["eventual consistency","Architecture","After an async update, all parts agree eventually, not instantly. 'The email arrives seconds later' is a feature, not a bug."],
+ ["saga","Architecture","A multi-service operation done as steps with compensations for failure, tracked in a table — the distributed replacement for one big transaction."],
+ ["circuit breaker","Architecture","After N failures calling a dependency, stop calling and fail fast for a while — protects both sides from a death spiral."],
+ ["backoff (exponential)","Architecture","Retry with growing delays (1s, 2s, 4s…) plus jitter so retries don't stampede a recovering service."],
+ ["cache / TTL","Architecture","Keep a copy closer for speed; TTL = how long before it's considered stale. Invalidation is the famously hard part."],
+ ["load balancer","Infra","Spreads traffic across instances/legs; terminates TLS at the edge. Why apps see the LB's IP without X-Forwarded-For."],
+ ["reverse proxy","Infra","A server in front of your app that forwards requests to it (LB, gateway, nginx). The client never talks to your app directly."],
+ ["WAF","Infra","Web Application Firewall — inspects HTTP for attacks (injection, XSS) at the edge. Can also block legitimate-but-weird requests: a triage suspect."],
+ ["DNS / FQDN","Infra","DNS turns names into IPs. FQDN = the full name (sotp.example.com). Egress whitelists are lists of FQDNs."],
+ ["TLS","Security","Encrypted transport where the server proves its identity with a certificate. The padlock."],
+ ["mTLS","Security","Mutual TLS: the CLIENT presents a certificate too. How partners and internal services authenticate to each other."],
+ ["certificate / CA","Security","A cert binds a public key to an identity, vouched by a Certificate Authority chain. Expiry = the classic midnight outage."],
+ ["HSM","Security","Hardware Security Module: tamper-resistant box holding keys that never leave it. Where OTP validation and EPCS signing keys live."],
+ ["JWT","Security","Signed JSON token: header.payload.signature. Signature proves integrity; payload is readable by anyone — no secrets in claims."],
+ ["JWK / JWKS","Security","JSON Web Key (Set): the published keys used to verify JWT signatures. Rolling keys = rotation without breaking in-flight tokens."],
+ ["claim","Security","One field inside a token's payload (sub, exp, roles). Verification checks signature + expiry + expected claims."],
+ ["OAuth2","Security","Delegated authorization framework: a client gets an access token to act on a user's behalf. Roles: resource owner, client, auth server, resource server."],
+ ["OIDC","Security","OpenID Connect: an identity layer on OAuth2 — adds the ID token (a JWT that says who the user is)."],
+ ["SAML","Security","The enterprise-era SSO protocol: XML assertions passed via browser redirects between IdP and SP. Same trust shape as OIDC, older clothes."],
+ ["IdP / SP","Security","Identity Provider authenticates the user and vouches; Service Provider trusts the IdP's signed assertion. Your federation hub is the IdP."],
+ ["SSO","Security","Sign in once, access many apps — implemented with SAML or OIDC through an IdP."],
+ ["MFA / OTP / TOTP","Security","Multi-factor auth. OTP = one-time password; TOTP = time-based OTP (shared secret + clock, RFC 6238). Hardware tokens = same math in plastic."],
+ ["salt + hash","Security","Passwords stored as hash(salt + password). One-way, per-user salt defeats precomputed attacks. Reset, never recover."],
+ ["CSRF","Security","Tricking a logged-in browser into sending a request the user didn't intend. Defense: same-site cookies, CSRF tokens; irrelevant for pure token APIs."],
+ ["XSS","Security","Injecting script into pages other users view. Defense: output encoding, CSP. Never trust rendered user input."],
+ ["least privilege","Security","Every account/service gets the minimum access needed. Why read-only DB accounts exist for triage."],
+ ["CI/CD","Delivery","Continuous Integration (build+test every change) / Continuous Delivery (automated deploy pipeline). GitHub Actions here."],
+ ["IaC / Terraform","Delivery","Infrastructure as Code: environments defined in versioned files; plan shows the diff, apply executes. No console-clicking drift."],
+ ["environment promotion","Delivery","The same built artifact climbs DEV → QA → UAT → PROD. What you tested is what ships."],
+ ["blue-green / canary","Delivery","Deploy to an idle copy and switch traffic (blue-green), or shift a small % first (canary). Both make rollback instant."],
+ ["observability","Ops","Logs (what happened), metrics (how it's trending), traces (where a request went). The three pillars."],
+ ["correlation / trace id","Ops","An ID stamped on a request and logged by every service it touches — the thread you pull to follow one request across logs."],
+ ["RTO / RPO","Ops","Recovery Time Objective (how long down) / Recovery Point Objective (how much data lost). DR design starts here."],
+ ["SLA / SLO","Ops","Agreement with consequences vs internal target. '99.9% availability' = about 43 minutes of downtime per month."],
+ ["smoke test","Practice","The quick 'is it fundamentally alive' check after a deploy, before deeper testing."],
+ ["mock / stub","Practice","Fake dependencies for tests: stubs return canned data; mocks also verify they were called correctly (Mockito does both)."],
+ ["unit vs integration test","Practice","Unit: one class, fakes around it, milliseconds. Integration: real pieces wired together (DB, HTTP), slower, fewer."],
+ ["regression","Practice","Something that used to work broke because of a change. Regression tests exist to catch the second occurrence for free."],
+ ["refactoring","Practice","Improving structure WITHOUT changing behavior. Tests are the safety net that makes it possible."],
+ ["tech debt","Practice","Shortcuts that made yesterday faster and today slower. Managed deliberately, paid down incrementally — never 'stop everything and rewrite'."],
+ ["boilerplate","Practice","Repetitive ceremony code (getters, builders). What records and frameworks exist to eliminate."],
+ ["DRY / YAGNI","Practice","Don't Repeat Yourself (extract shared logic) / You Aren't Gonna Need It (don't build for imagined futures)."],
+ ["feature flag","Practice","A runtime switch that turns behavior on/off per env or client without redeploying. Your client-config DB is a giant feature-flag system."],
+ ["hotfix / backport","Practice","Emergency fix straight to prod branch / applying a newer fix to an older release line."]
+];
+const glCatsAll = [...new Set(GLOSSARY.map(g => g[1]))];
+let glCat = 'All', glRecallMode = false;
+const glCatsBox = document.getElementById('glCats');
+['All', ...glCatsAll].forEach(c => {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (c === 'All' ? ' on' : ''); b.textContent = c;
+  b.addEventListener('click', () => { glCat = c; document.querySelectorAll('#glCats .btn').forEach(x => x.classList.toggle('on', x === b)); renderGloss(); });
+  glCatsBox.appendChild(b);
+});
+function renderGloss(){
+  const q = document.getElementById('glSearch').value.toLowerCase();
+  const list = document.getElementById('glossList'); list.innerHTML = '';
+  GLOSSARY.forEach(g => {
+    if (glCat !== 'All' && g[1] !== glCat) return;
+    if (q && !(g[0].toLowerCase().includes(q) || g[2].toLowerCase().includes(q))) return;
+    const row = document.createElement('div'); row.className = 'gl-row' + (glRecallMode ? '' : '');
+    row.innerHTML = '<div class="gl-term"><span>' + g[0] + '</span><span class="gl-cat">' + g[1] + '</span></div><div class="gl-def">' + g[2] + '</div>';
+    row.querySelector('.gl-term').addEventListener('click', () => row.classList.toggle('open'));
+    if (!glRecallMode && q) row.classList.add('open');
+    list.appendChild(row);
+  });
+}
+document.getElementById('glSearch').addEventListener('input', renderGloss);
+document.getElementById('glRecall').addEventListener('click', () => {
+  glRecallMode = !glRecallMode;
+  document.getElementById('glRecall').textContent = glRecallMode ? '🧠 Recall mode ON — define before you tap' : '🧠 Recall mode: collapse all';
+  renderGloss();
+});
+renderGloss();
+
+// ---------- interview bank ----------
+const IQ = [
+ ["Java Core","What is the difference between JDK, JRE, and JVM?","JVM runs bytecode; JRE = JVM + core libraries (enough to run); JDK = JRE + compiler and tools (enough to build)."],
+ ["Java Core","Explain == vs .equals() and when each is correct.","== compares references (same object) or primitive values; .equals() compares logical content. Use == only for primitives and enums."],
+ ["Java Core","State the equals/hashCode contract and what breaks if you violate it.","Equal objects must have equal hashCodes. Violate it and hash collections misplace your keys: put works, get returns null."],
+ ["Java Core","Why are Strings immutable in Java?","Safety (shared freely across threads and as map keys), the string pool (dedup), and security (paths/URLs can't change after checks)."],
+ ["Java Core","String vs StringBuilder vs StringBuffer?","String is immutable; concatenation in loops creates garbage. StringBuilder mutates efficiently (single thread); StringBuffer is its synchronized legacy twin."],
+ ["Java Core","What does final mean on a variable, method, and class?","Variable: assign once. Method: cannot be overridden. Class: cannot be extended. (Note: final fields also get safe-publication benefits.)"],
+ ["Java Core","What does static mean and when do you use it?","Belongs to the class, not instances: constants, pure utility methods, factory methods. Avoid mutable static state — it's a shared global."],
+ ["Java Core","Checked vs unchecked exceptions — when do you use each?","Checked (extends Exception): recoverable, expected failures callers must handle. Unchecked (RuntimeException): programming errors. Many codebases wrap checked into unchecked at boundaries."],
+ ["Java Core","What is try-with-resources and why is it better than finally?","try (resource) auto-closes anything AutoCloseable even on exceptions, in reverse order, without the leak-prone hand-written finally block."],
+ ["Java Core","Does finally always execute?","Effectively yes — except System.exit, JVM crash, or infinite loop in try. Returns in finally silently swallow exceptions: never do it."],
+ ["Java Core","Interface vs abstract class — how do you choose?","Interface = contract, multiple inheritable, no state. Abstract class = shared skeleton with fields and partial implementation. Contract → interface; shared code → abstract base (often both: interface + abstract impl)."],
+ ["Java Core","Why were default methods added to interfaces?","So interfaces could evolve (new methods with a default body) without breaking every implementer — how Java 8 added stream() to Collection."],
+ ["Java Core","Overloading vs overriding?","Overloading: same name, different parameters, resolved at compile time. Overriding: subclass replaces an inherited method, resolved at runtime (dynamic dispatch)."],
+ ["Java Core","Explain polymorphism with a practical example.","One call site, many behaviors: helper.bind(ref) does hardware-token logic or SMS logic depending on the actual object. The caller never switches on type."],
+ ["Java Core","Why encapsulation? What does private actually buy you?","Invariants: state changes only through methods that enforce rules (a state machine's guarded transitions). Change the internals without breaking callers."],
+ ["Java Core","Why prefer composition over inheritance?","Inheritance couples you to a parent's internals and locks the hierarchy; composition (has-a + delegation) stays flexible and testable. Inherit for true is-a with shared skeleton (Template Method); otherwise compose."],
+ ["Java Core","How do you write an immutable class?","final class, final fields, no setters, defensive copies of mutable inputs/outputs, all state set in the constructor. Or: use a record."],
+ ["Java Core","Is Java pass-by-value or pass-by-reference?","Always pass-by-value — but for objects the value IS the reference. So methods can mutate the object, but reassigning the parameter does nothing for the caller."],
+ ["Java Core","What autoboxing pitfalls do you know?","Unboxing null Integer throws NPE; == on boxed values compares references (Integer cache makes small values 'work' then break at 128); boxing in hot loops costs allocations."],
+ ["Java Core","What is Optional for, and name two anti-patterns.","A return type that forces callers to handle absence. Anti-patterns: calling get() unguarded, and using Optional for fields/parameters instead of return values."],
+ ["Java Core","Lambda vs anonymous inner class?","Lambda implements a functional interface concisely, captures effectively-final locals, no separate this scope, no class file ceremony."],
+ ["Java Core","What is a functional interface?","An interface with exactly one abstract method (Runnable, Comparator, Function) — the target type a lambda can implement. @FunctionalInterface documents it."],
+ ["Java Core","When does a stream actually execute?","At the terminal operation (collect, count, findFirst). Intermediate ops (filter, map) are lazy descriptions; short-circuiting ops can stop early."],
+ ["Java Core","map vs flatMap?","map transforms each element one-to-one; flatMap transforms each element into a stream and flattens — one-to-many, or unwrapping nested structures."],
+ ["Java Core","Comparable vs Comparator?","Comparable = the type's ONE natural order (compareTo, in the class). Comparator = any number of external orders (Comparator.comparing(User::getName)); composable with thenComparing/reversed."],
+ ["Java Core","Shallow vs deep copy?","Shallow copies the object but shares referenced objects (mutation leaks through); deep copies the whole graph. Immutability makes the question disappear."],
+ ["Java Core","Why are enums good singletons and good state machines?","Fixed instance set enforced by the JVM (serialization-safe singleton); with fields and methods they encode states plus legal transitions readably."],
+ ["Java Core","How do you prevent NullPointerExceptions systematically?","Optional for absent returns, literal-first equals, validate at boundaries (constructor as validity gate), annotations (@NonNull), and never returning null collections (return empty)."],
+ ["Java Core","Name the SOLID principles in one line each.","Single responsibility (one reason to change); Open/closed (extend, don't modify — the factory pattern); Liskov (subtypes honor the contract); Interface segregation (small focused contracts); Dependency inversion (depend on abstractions — DI)."],
+ ["Java Core","What is the difference between fail-fast validation and defensive programming?","Fail-fast rejects bad input immediately at the boundary with a clear error; defensive code checks everywhere 'just in case' and hides bugs. Validate once at the edge, then trust internals."],
+ ["Collections","ArrayList vs LinkedList — when is each right?","ArrayList: O(1) index access, cache-friendly, the default 99% of the time. LinkedList: O(1) add/remove at ends via iterator, O(n) access — rarely wins in practice."],
+ ["Collections","How does HashMap work internally?","hashCode → bucket index; bucket holds entries; equals resolves collisions. Java 8+: long collision chains become red-black trees (O(log n) worst case). Resizes at load factor 0.75."],
+ ["Collections","Why must HashMap keys be immutable?","If a key mutates after insertion its hashCode changes, so lookups compute a different bucket — the entry is still there but unreachable."],
+ ["Collections","HashMap vs Hashtable vs ConcurrentHashMap?","Hashtable: legacy, fully synchronized, dead. HashMap: fast, not thread-safe. ConcurrentHashMap: thread-safe via fine-grained internal locking, no null keys, atomic compute methods."],
+ ["Collections","How does HashSet work internally?","It IS a HashMap with your elements as keys and a dummy value — same hashing, same O(1) contains, same equals/hashCode requirements."],
+ ["Collections","HashMap vs LinkedHashMap vs TreeMap?","HashMap: no order, O(1). LinkedHashMap: insertion (or access) order kept, O(1) — the LRU-cache building block. TreeMap: sorted by key, O(log n), range queries."],
+ ["Collections","Fail-fast vs fail-safe iterators?","Fail-fast (ArrayList, HashMap) throw ConcurrentModificationException on structural change during iteration. Fail-safe (ConcurrentHashMap, CopyOnWriteArrayList) iterate a snapshot/tolerant view."],
+ ["Collections","How do you remove elements while iterating a list safely?","iterator.remove(), or list.removeIf(predicate). Never list.remove inside a for-each — that's the ConcurrentModificationException."],
+ ["Collections","List.of() vs Arrays.asList() vs new ArrayList()?","List.of: truly immutable, no nulls. Arrays.asList: fixed-size VIEW over the array (set works, add throws). new ArrayList(...): fully mutable copy."],
+ ["Collections","Big-O of the operations you use daily?","HashMap get/put O(1); HashSet contains O(1); ArrayList get O(1), contains O(n); TreeMap ops O(log n); sort O(n log n); PriorityQueue offer/poll O(log n)."],
+ ["Collections","When do you reach for PriorityQueue?","Top-k, streaming min/max, scheduling by priority — anywhere you repeatedly need 'the smallest/largest so far' without fully sorting."],
+ ["Collections","Why ArrayDeque over the Stack class?","Stack extends Vector: synchronized, legacy. ArrayDeque is the modern stack AND queue — faster, cleaner API (push/pop/offer/poll)."],
+ ["Collections","What is type erasure and what are its consequences?","Generics exist only at compile time; at runtime a List of String is just a List. Consequences: no new T(), no instanceof List of String, arrays of generics are awkward."],
+ ["Collections","Explain PECS (? extends vs ? super).","Producer Extends, Consumer Super: read from a List of ? extends T (source), write into a List of ? super T (sink). Recognize the shape; rarely write it."],
+ ["Collections","How would you build an LRU cache in Java?","LinkedHashMap with accessOrder=true and an overridden removeEldestEntry — about five lines. (Or Caffeine in production.)"],
+ ["Collections","groupingBy vs toMap in Collectors?","groupingBy: key → List of matches (one-to-many). toMap: key → single value, THROWS on duplicate keys unless you pass a merge function — a classic prod bug."],
+ ["Collections","Why does Collectors.toMap throw on duplicates and how do you fix it?","No merge strategy was given. Fix: toMap(keyFn, valFn, (a, b) -> a) — choosing which duplicate wins is a business decision, be explicit."],
+ ["Collections","Record as a map key — why is it safe?","Records auto-generate value-based equals and hashCode from all components, and are immutable — exactly the key contract."],
+ ["Concurrency","Process vs thread?","Process: own memory space, isolated. Thread: shares its process's heap with sibling threads — cheap to create, dangerous to share state."],
+ ["Concurrency","How do you create and run threads properly in production code?","Never raw new Thread() per task — use ExecutorService pools (fixed, cached) or the framework's (Tomcat's). Threads are expensive; pools bound and reuse them."],
+ ["Concurrency","What does synchronized actually do?","Acquires the object's monitor: one thread at a time in the block, AND establishes happens-before so changes are visible to the next acquirer."],
+ ["Concurrency","What does volatile guarantee — and not guarantee?","Guarantees visibility (readers see the latest write) and ordering around the access. Does NOT make read-modify-write atomic: volatile x++ still races."],
+ ["Concurrency","How do Atomic classes work under the hood?","Compare-and-swap (CAS) CPU instructions: read, compute, swap-if-unchanged, retry on conflict. Lock-free atomic counters and references."],
+ ["Concurrency","Give a concrete race condition and its fixes.","Two threads run failCount++ (read 5, both write 6 — an increment lost). Fixes: AtomicInteger, synchronized, or push the increment into the DB (UPDATE SET cnt = cnt + 1)."],
+ ["Concurrency","What four conditions create deadlock, and the practical prevention?","Mutual exclusion, hold-and-wait, no preemption, circular wait. Practical fix: acquire locks in a single global order, keep critical sections tiny, use timeouts."],
+ ["Concurrency","wait() vs sleep()?","wait releases the monitor and needs synchronized + notify to resume (coordination). sleep holds everything and just pauses the thread (delay)."],
+ ["Concurrency","Runnable vs Callable, and what is a Future?","Runnable returns nothing and throws nothing checked; Callable returns a value and can throw. Future is the handle to the eventual result: get() blocks, isDone() polls."],
+ ["Concurrency","What is CompletableFuture good for?","Composing async steps without blocking: thenApply/thenCompose chains, allOf for fan-out, exceptionally for errors — async pipelines as code."],
+ ["Concurrency","What is ThreadLocal and what is its classic leak?","Per-thread storage (each thread sees its own value) — how SecurityContext works. Leak: thread POOLS reuse threads, so un-removed values survive into other requests. Always remove() in a finally."],
+ ["Concurrency","ConcurrentHashMap vs Collections.synchronizedMap?","synchronizedMap: one lock around everything, iteration still needs manual sync. ConcurrentHashMap: fine-grained internal locking, concurrent reads, atomic compute/merge — the right answer."],
+ ["Concurrency","What does happens-before mean?","The Java Memory Model's visibility rule: if A happens-before B, B sees A's writes. Established by synchronized, volatile, thread start/join — not by wall-clock order."],
+ ["Concurrency","How do you size a thread pool?","CPU-bound: about core count. IO-bound: cores × (1 + wait/compute ratio) — higher. But the real answer: measure, and bound the queue so overload fails fast instead of hiding."],
+ ["Concurrency","CountDownLatch vs CyclicBarrier vs Semaphore?","Latch: N events then proceed, one-shot. Barrier: N threads meet, reusable. Semaphore: at most N concurrent holders (a permit pool — rate limiting a resource)."],
+ ["Concurrency","What are virtual threads (Java 21) and what problem do they solve?","JVM-managed threads costing bytes not megabytes: millions can block cheaply on IO. Thread-per-request scales again without async gymnastics. Platform threads remain for CPU-bound work."],
+ ["Concurrency","What are the known virtual-thread pitfalls interviewers probe?","Pinning: synchronized blocks holding a native carrier thread during blocking IO (use ReentrantLock); ThreadLocal cost at millions of threads; they don't speed up CPU-bound work at all."],
+ ["Concurrency","Why does immutability simplify concurrency?","No writes → no visibility or atomicity questions → nothing to lock. Share freely. The cheapest concurrency strategy is having nothing to protect."],
+ ["Concurrency","Sketch producer-consumer in Java.","A BlockingQueue between them: producers put (block when full), consumers take (block when empty). Backpressure, coordination, and thread-safety in one structure."],
+ ["Concurrency","A Spring @Service has a mutable instance field updated per request. What happens under load?","Requests share the singleton, so threads overwrite each other's state — intermittent cross-user corruption. Per-request state belongs in locals/parameters; shared state needs synchronization or the DB."],
+ ["JVM","Walk through stack vs heap.","Each thread owns a stack of frames (locals, per-call, freed on return). All threads share the heap (objects, GC-managed). Locals are thread-safe by construction; fields are not."],
+ ["JVM","How does class loading work?","Lazy, hierarchical: bootstrap → platform → application loaders, parent-first delegation. ClassNotFoundException / NoClassDefFoundError = classpath and loading issues."],
+ ["JVM","Explain generational garbage collection.","Most objects die young: new allocations go to the young gen (collected cheaply and often); survivors promote to old gen (collected rarely, expensively). Full GC pauses = old-gen pressure."],
+ ["JVM","Which GCs should you know in 2026?","G1 (default, region-based, pause-target); ZGC and Shenandoah (sub-millisecond pauses, huge heaps); Parallel (throughput batch). Know the trade: pause time vs throughput."],
+ ["JVM","Name OutOfMemoryError flavors and their meaning.","Java heap space (references held / heap too small), Metaspace (class-definition leak, often redeploys), unable to create native thread (thread explosion), GC overhead limit (dying by thrashing)."],
+ ["JVM","What is a memory leak in a GC'd language?","Objects still REACHABLE that you'll never use: ever-growing static maps, unbounded caches, listeners never unregistered, ThreadLocals in pools."],
+ ["JVM","How do you diagnose a suspected memory leak?","Confirm the shape (heap climbing across GCs), take two heap histograms/dumps apart in time, diff instance counts — the leaking class only grows. Then find what holds the references."],
+ ["JVM","What is JIT compilation?","The JVM interprets bytecode, profiles hot paths, and compiles them to optimized native code at runtime — why Java warms up and why microbenchmarks lie without JMH."],
+ ["JVM","What is the string pool?","A cache of interned String literals so identical literals share one object — the reason == 'works' on literals in demos and then betrays you with runtime strings."],
+ ["JVM","What are -Xms and -Xmx?","Initial and max heap size. Set equal in containers for predictability; too small = OOM/GC churn, too big = long pauses and OS pressure."],
+ ["JVM","What causes StackOverflowError?","A thread's stack exhausted — almost always unbounded recursion (missing/never-reached base case). Read the repeating frame cycle in the trace."],
+ ["JVM","Metaspace vs PermGen?","PermGen (pre-Java 8) was a fixed-size heap area for class metadata and its OOMs; Metaspace replaced it in native memory, growable, but class-loader leaks still fill it."],
+ ["Spring","Explain IoC and DI in one breath.","Inversion of control: the framework builds and wires objects and calls your code. Dependency injection is how: classes declare constructor dependencies; the container provides them."],
+ ["Spring","What is a bean and what is its lifecycle?","A container-managed object. Lifecycle: instantiate → inject dependencies → aware callbacks → @PostConstruct init → ready → @PreDestroy on shutdown."],
+ ["Spring","Constructor vs field vs setter injection — which and why?","Constructor: dependencies explicit, final, testable without Spring, fails fast at startup. Field (@Autowired on fields) hides them and needs reflection in tests. Setter only for optional/reconfigurable deps."],
+ ["Spring","Name the bean scopes and the one that matters.","singleton (default — hence stateless services), prototype (new per request to the container), plus web scopes (request, session). 99% singleton; know why that forces statelessness."],
+ ["Spring","@Component vs @Service vs @Repository vs @Controller?","All register beans. @Service marks business logic (semantics), @Repository adds exception translation to DataAccessException, @Controller/@RestController register request mappings."],
+ ["Spring","How does @Autowired resolve, and what if two beans match?","By type, then by qualifier/name. Two matches = NoUniqueBeanDefinitionException; disambiguate with @Primary (default) or @Qualifier (explicit pick)."],
+ ["Spring","How do you handle a circular dependency?","Best: refactor — extract the shared piece; cycles are a design smell. Escape hatches: @Lazy on one side, setter injection. Boot 2.6+ rejects cycles by default."],
+ ["Spring","How does @Transactional actually work?","The bean is wrapped in a proxy that begins a transaction before the method and commits/rolls back after. Corollaries: self-invocation and non-public methods bypass it; rollback on unchecked exceptions by default."],
+ ["Spring","Explain transaction propagation: REQUIRED vs REQUIRES_NEW.","REQUIRED joins the caller's transaction (all-or-nothing together). REQUIRES_NEW suspends it and commits independently — audit rows that survive a rolled-back operation."],
+ ["Spring","Why doesn't a checked exception roll back a transaction by default?","Spring's convention: unchecked = bug → rollback; checked = handled business outcome → commit. Override with rollbackFor when the convention is wrong for you."],
+ ["Spring","What is AOP and where does Spring use it?","Cross-cutting behavior woven around methods via proxies: transactions, security checks, async, caching, metrics. Your annotations are pointcuts in disguise."],
+ ["Spring","JDK dynamic proxy vs CGLIB?","JDK proxies implement the bean's interfaces; CGLIB subclasses the bean itself (Boot's default). CGLIB can't intercept final methods/classes — silent annotation no-ops."],
+ ["Spring","ApplicationContext vs BeanFactory?","BeanFactory: bare container, lazy. ApplicationContext: the real one — eager singletons, events, resources, environment. You'll never choose BeanFactory."],
+ ["Spring","What is @Configuration + @Bean for, vs @Component scanning?","Explicit factory methods for beans you construct yourself (third-party classes, tuned clients, conditional wiring) — wiring as code instead of annotation-on-class."],
+ ["Spring","How do Spring application events work and when are they useful?","publisher.publishEvent(obj); @EventListener methods receive it. Sync by default (same transaction!); @Async decouples. In-process decoupling — the ASB pattern's little sibling."],
+ ["Spring","What are profiles for?","Environment-specific beans and properties (@Profile('qa'), application-qa.properties). One artifact, per-environment behavior — the promotion model depends on this."],
+ ["Spring","Spring vs Spring Boot?","Spring is the framework (DI, MVC, tx); Boot is opinionated bootstrapping on top: auto-configuration, starters, embedded server, actuator. Boot removes the XML-era setup, not the concepts."],
+ ["Spring","What is a BeanPostProcessor?","A hook that can inspect/wrap every bean after creation — the machinery behind @Autowired processing and proxy creation. Know it exists; write one rarely."],
+ ["Spring","Why does Spring encourage stateless singletons?","One instance serves all threads: no per-user fields means no races, easy horizontal scaling, trivial reasoning. State lives in method scope and the database."],
+ ["Spring","How would you explain 'the container' to a junior in 30 seconds?","At startup Spring scans for annotated classes, creates one object of each, and passes them into each other's constructors. That's it — everything else is features on top."],
+ ["Spring Boot","How does Spring Boot auto-configuration work?","@EnableAutoConfiguration loads candidate configs listed in AutoConfiguration.imports, each guarded by @Conditional checks (class present? bean missing? property set?). Your classpath and properties decide what gets configured."],
+ ["Spring Boot","A bean you expected isn't being created. How do you debug it? (2026 favorite)","Run with --debug for the condition-evaluation report: it lists every auto-config that matched or didn't and WHY (missing class, existing bean, property off). Read the report, don't guess."],
+ ["Spring Boot","What is a starter?","A curated dependency bundle (spring-boot-starter-web = MVC + Jackson + Tomcat) so versions arrive tested-together. No code in them — just a shopping list."],
+ ["Spring Boot","How does the embedded server model change deployment?","The app IS the server (java -jar): no external Tomcat to install/patch, same artifact everywhere, container-friendly. WAR-to-external-Tomcat remains for legacy estates."],
+ ["Spring Boot","Where can configuration come from, and in what precedence?","Command line → env vars → profile-specific properties → application.properties → defaults. Higher wins. Plus config server and vaults layered in via imports. Know the override chain for 'why is this value wrong in QA'."],
+ ["Spring Boot","@Value vs @ConfigurationProperties?","@Value: single property into a field. @ConfigurationProperties: a whole prefix bound to a typed, validated bean — the right tool once related settings exceed two."],
+ ["Spring Boot","What does Actuator give you and what must you secure?","health, info, metrics, env, threaddump… Secure everything beyond health/info — env and heapdump expose secrets. Health checks drive load balancers."],
+ ["Spring Boot","How do you exclude an auto-configuration, and when would you?","@SpringBootApplication(exclude = SecurityAutoConfiguration.class) or properties. When you bring your own implementation — like a custom JWT filter chain instead of default security."],
+ ["Spring Boot","How would you write your own auto-configuration?","A @Configuration with @Conditional guards + @ConditionalOnMissingBean defaults, registered in AutoConfiguration.imports — how shared platform libraries inject their beans into every service."],
+ ["Spring Boot","What changed in Spring Boot 3 that interviews ask about?","Java 17 baseline, javax → jakarta namespace (every import), Spring Security 6 lambda-DSL config, built-in Micrometer tracing replacing Sleuth, GraalVM native support."],
+ ["Spring Boot","What is graceful shutdown and why does it matter?","On SIGTERM: stop accepting requests, let in-flight ones finish (timeout-bounded), then exit. Without it, deploys drop live requests — visible as a 502 blip every release."],
+ ["Spring Boot","How do you add a custom health check?","Implement HealthIndicator, return Health.up()/down() with details — e.g., 'can I reach the DB / the message bus'. Deep checks make the LB pull a sick node before users notice."],
+ ["Spring Boot","@SpringBootTest vs @WebMvcTest vs @DataJpaTest?","@SpringBootTest: whole context, slow, integration. @WebMvcTest: controllers only with MockMvc, services mocked. @DataJpaTest: repositories against a test DB. Slice tests keep suites fast."],
+ ["Spring Boot","How does Boot decide the logging setup, and how do you tune it?","Logback by default via the logging starter; levels per package in properties (logging.level.com.yourco=DEBUG). Know how to raise a package to DEBUG in one environment safely."],
+ ["Spring Boot","Why records for request/response DTOs? (2026 favorite)","Immutable, compact, value-equality, Jackson-friendly — a one-line contract object. Validation annotations sit right on components."],
+ ["Spring Boot","What is the difference between bootstrap and application configuration in cloud-config setups?","Bootstrap loads first to reach the config server/vault that supplies the rest. Legacy-but-alive pattern (Boot 2 era) — exactly how platform services fetch central config at startup."],
+ ["JPA & Hibernate","JPA vs Hibernate vs Spring Data JPA?","JPA: the standard API. Hibernate: the dominant implementation. Spring Data JPA: repository interfaces + derived queries on top. You code to the top layer, debug through all three."],
+ ["JPA & Hibernate","Explain entity states.","Transient (new, untracked) → managed (in the persistence context, dirty-checked) → detached (context closed, changes ignored). Half of JPA confusion is 'my change didn't save' = detached."],
+ ["JPA & Hibernate","What is dirty checking?","Managed entities are snapshotted; at flush/commit Hibernate diffs and writes UPDATEs automatically — you rarely call save on a managed entity. Magic until it writes something you didn't expect."],
+ ["JPA & Hibernate","Lazy vs eager fetching, and the LazyInitializationException?","Lazy loads relations on first access (default for collections); eager always joins them in. The exception = touching a lazy relation after the session closed — fetch it in the query or map to a DTO inside the transaction."],
+ ["JPA & Hibernate","Explain the N+1 problem and its fixes. (asked constantly)","Load N orders (1 query), touch each order's customer (N more queries). Fixes: JOIN FETCH in JPQL, @EntityGraph, or batch fetching. Detect it by logging SQL in tests."],
+ ["JPA & Hibernate","First-level vs second-level cache?","First-level: the persistence context itself, per transaction, always on (same entity = same object). Second-level: optional cross-session cache (Ehcache/Caffeine) — powerful, and a staleness footgun."],
+ ["JPA & Hibernate","@GeneratedValue strategies?","IDENTITY (DB auto-increment, blocks JDBC batching), SEQUENCE (preferred where supported, batch-friendly), TABLE (avoid). Know that IDENTITY vs SEQUENCE affects insert batching."],
+ ["JPA & Hibernate","How do derived query methods work, and their limit?","findByStatusAndClientIdOrderByIdDesc parses the method name into a query. Past two-three conditions it becomes unreadable — switch to @Query."],
+ ["JPA & Hibernate","JPQL vs native queries?","JPQL targets entities (portable, refactor-safe); native SQL for DB-specific features (window functions, hints). Native returns need explicit mapping — worth it for the hard 10%."],
+ ["JPA & Hibernate","How does pagination work in Spring Data?","Pass a Pageable (page, size, sort); get a Page with content + total count. The count query is a hidden cost on huge tables — consider Slice when total isn't needed."],
+ ["JPA & Hibernate","Optimistic vs pessimistic locking in JPA?","Optimistic: @Version column; conflicting update throws OptimisticLockException — retry or surface. Pessimistic: SELECT FOR UPDATE row locks. Default to optimistic; reserve pessimistic for hot contested rows."],
+ ["JPA & Hibernate","How do the transaction and persistence context relate?","The persistence context typically lives for the transaction: entities managed within it, flushed at commit. That boundary is why detached-entity bugs cluster at service-layer edges."],
+ ["JPA & Hibernate","Why not return entities directly from REST controllers?","Lazy-loading serialization explosions, leaking schema/internal fields, bidirectional-relation JSON cycles, and coupling your API to your tables. Map to DTOs at the service boundary."],
+ ["JPA & Hibernate","What is open-session-in-view and why is it controversial?","Boot's default keeps the session open through view rendering so lazy loads 'work' in controllers — hiding N+1s and holding connections longer. Seniors disable it and fetch deliberately."],
+ ["REST & API","Which HTTP methods are idempotent, and why does it matter?","GET, PUT, DELETE (and HEAD) — repeating them yields the same state; POST is not. Idempotency decides what's safe to retry — the network WILL make you retry."],
+ ["REST & API","PUT vs PATCH vs POST?","POST: create / non-idempotent actions. PUT: full replace at a known URI, idempotent. PATCH: partial update. Interviewers listen for idempotency reasoning, not definitions."],
+ ["REST & API","Status codes: 400 vs 401 vs 403 vs 404 vs 409 vs 422?","400 malformed; 401 who are you (authN); 403 you specifically may not (authZ); 404 no such resource; 409 conflicts with current state (illegal transition!); 422 well-formed but semantically invalid."],
+ ["REST & API","500 vs 502 vs 503 — what does each tell you in triage?","500: the app itself threw (read its logs). 502: a proxy got a bad/no response from upstream (the hop behind the LB). 503: overloaded or deliberately down (health check failing, pool exhausted)."],
+ ["REST & API","How do you make a POST safe to retry?","Idempotency keys: client sends a unique key; server stores result per key and replays it on duplicates. This is exactly the dedupe discipline message consumers need."],
+ ["REST & API","How do you version an API, and how do you avoid needing to?","Path (/v1/ → /v2/) is the pragmatic standard. Avoid by evolving additively: new optional fields and endpoints don't break clients who ignore unknown fields."],
+ ["REST & API","Which API changes are breaking vs safe?","Safe: add optional field, add endpoint, add enum value you emit (if clients tolerate). Breaking: remove/rename/retype fields, new required inputs, changed status codes/semantics."],
+ ["REST & API","Design a good error response.","Stable machine-readable code (invalid_cred_type), human message, correlation/trace id for log lookup, no stack traces or internals. RFC 7807 problem+json is the standard shape."],
+ ["REST & API","What is CORS actually protecting?","Browsers block cross-origin reads unless the server opts in via headers; preflights ask permission for non-simple requests. Server-to-server calls never hit CORS — a browser-only concern."],
+ ["REST & API","How do you paginate and filter list endpoints well?","Limit + cursor (or page/size), documented max page size, stable sort, filters as query params. Cursor pagination survives concurrent inserts; offset drifts."],
+ ["REST & API","Where does rate limiting live and how does token bucket work?","At the gateway/edge, keyed per client/token. Token bucket: tokens drip in at rate R up to burst B; each request spends one; empty bucket = 429 with Retry-After."],
+ ["REST & API","Why must REST services be stateless, mechanically?","Any instance must serve any request: no in-memory sessions, state in tokens and the DB. This single property is what makes horizontal scaling and zero-downtime deploys work."],
+ ["REST & API","What is content negotiation?","Client's Accept header picks the representation (JSON, XML); server matches or 406. In practice: JSON everywhere, but know the mechanism."],
+ ["REST & API","How do you secure a service-to-service API?","mTLS (both sides prove identity with certs) and/or signed tokens (client-credentials JWT), least-privilege scopes, short expiry — never long-lived shared API keys in config."],
+ ["SQL & DB","Recite the logical query execution order and one thing it explains.","FROM/JOIN → WHERE → GROUP BY → HAVING → SELECT → ORDER BY. Explains why WHERE can't see SELECT aliases (and why aggregate filters need HAVING)."],
+ ["SQL & DB","INNER vs LEFT JOIN — and the classic LEFT JOIN mistake?","INNER keeps matches only; LEFT keeps all left rows with NULLs for no-match. Mistake: a WHERE condition on the right table silently turns LEFT into INNER — put it in the ON clause."],
+ ["SQL & DB","How do you find rows that have NO match in another table?","LEFT JOIN + WHERE right.id IS NULL, or NOT EXISTS. Never NOT IN against a nullable subquery — one NULL makes it return nothing."],
+ ["SQL & DB","WHERE vs HAVING?","WHERE filters rows before grouping (cheap, index-friendly); HAVING filters groups after aggregation. Filter early with WHERE whenever possible."],
+ ["SQL & DB","How does an index work and when does the engine ignore it?","A sorted lookup structure: equality/range on the leading column = seek. Ignored when you wrap the column in a function, lead with a wildcard, or the predicate isn't selective enough."],
+ ["SQL & DB","Composite index (A, B, C) — which queries can use it?","Leftmost prefixes: A, A+B, A+B+C — like a phone book sorted by last-then-first name. Filtering on B alone scans. Order columns: equality first, range last."],
+ ["SQL & DB","What is a covering index?","One containing every column the query touches — answered entirely from the index, never visiting the table. The fastest query never leaves the index."],
+ ["SQL & DB","Clustered vs nonclustered index?","Clustered = the table's physical order (one per table, usually the PK); nonclustered = separate structures pointing back. Why PK lookups are fastest and why random GUID PKs fragment."],
+ ["SQL & DB","Explain ACID with one failure story.","Atomicity: status update commits but its audit-event insert fails → BOTH roll back, or you get a record whose history disagrees with its state — the exact bug class transactions exist to prevent."],
+ ["SQL & DB","Isolation levels and their anomalies?","Read uncommitted (dirty reads) → read committed (non-repeatable reads) → repeatable read (phantoms) → serializable (none, slowest). Plus snapshot/RCSI: readers see a consistent photo, writers don't block readers."],
+ ["SQL & DB","How do DB deadlocks happen and how should apps respond?","Two transactions lock rows in opposite orders and wait on each other; the DB kills a victim. Apps: keep transactions short, touch tables in consistent order, and RETRY the victim error."],
+ ["SQL & DB","Optimistic vs pessimistic concurrency at the DB level?","Optimistic: version/timestamp column, detect conflict at write, retry (scales, default). Pessimistic: lock rows up front (FOR UPDATE) when conflicts are frequent and retries expensive."],
+ ["SQL & DB","Window functions vs GROUP BY?","GROUP BY collapses rows into one per group; window functions compute per-group values while keeping every row. ROW_NUMBER over PARTITION BY = 'latest per user' in one move."],
+ ["SQL & DB","EXISTS vs IN?","EXISTS short-circuits on first match and handles NULLs sanely; IN materializes the list (and NOT IN breaks on NULLs). Correlated checks → EXISTS."],
+ ["SQL & DB","Normalization vs denormalization — the real trade?","Normalize to remove update anomalies (one fact, one place); denormalize to remove read-time joins for hot paths. OLTP normalizes; reporting denormalizes; know which side a table serves."],
+ ["SQL & DB","How do prepared statements prevent SQL injection?","The query plan is compiled with placeholders; user input arrives as pure data bound to parameters — it can never become SQL syntax. String concatenation is the vulnerability."],
+ ["SQL & DB","What do you look for first in an execution plan?","Scans on big tables where you expected seeks, thick arrows (huge row counts), and expensive sorts/spills. One glance tells you whether the index you assumed is actually used."],
+ ["SQL & DB","Why is 'SELECT *' a problem beyond style?","Kills covering indexes, drags unneeded columns over the wire, breaks when columns change, and hides intent. Name your columns — the optimizer and the next reader both benefit."],
+ ["System Design","Monolith vs microservices — give the honest trade-off.","Microservices buy independent deploys, scaling, and team ownership; they cost network failures, distributed debugging, and consistency engineering (sagas, idempotency). A modular monolith is often the right first answer."],
+ ["System Design","When do you choose async messaging over a REST call?","When the caller doesn't need the answer NOW (emails, sync jobs, notifications): queues absorb spikes, retry safely, and decouple deploys. Anything user-blocking stays synchronous."],
+ ["System Design","At-least-once delivery — what does it force on every consumer?","Idempotency. Duplicates WILL arrive: dedupe by message id, use upserts and absolute updates (set status = X, not increment). Design for the duplicate, not the happy path."],
+ ["System Design","Explain the saga pattern and its two styles.","A distributed operation as local steps with compensations, tracked in state. Orchestration: a coordinator commands each step (visible, central). Choreography: services react to events (loose, harder to follow). Either way: a stuck saga row tells you exactly which step died."],
+ ["System Design","How does a circuit breaker work and why fail fast?","Closed → (N failures) → open: calls fail instantly without hitting the sick dependency → half-open probes recovery. Failing fast frees your threads; slow failures are what actually take platforms down."],
+ ["System Design","Design retries that don't make things worse.","Only idempotent operations, exponential backoff with jitter, a retry budget/cap, and a circuit breaker above it. Naive instant retries triple the load on a struggling service — a retry storm."],
+ ["System Design","What does an API gateway do?","Single entry point: routing, TLS termination, authn, rate limiting, request logging. Cross-cutting edge concerns live once — not in every service."],
+ ["System Design","Why must services be stateless to scale horizontally, and where does state go?","Any instance serves any request — nothing user-specific in instance memory. State goes to the DB, a shared cache, or the token itself. Sticky sessions are the confession that you failed this."],
+ ["System Design","Walk through caching: where, and what's hard?","Layers: client, CDN, gateway, app (Caffeine), distributed (Redis), DB buffer pool. Hard part: invalidation — stale-vs-fast is a business decision. Know cache-aside and the stampede problem (locks/early refresh)."],
+ ["System Design","What is CAP in practice?","During a network partition you choose: refuse requests (consistency) or serve possibly-stale data (availability). Real systems choose per-operation: payments pick C, product pages pick A."],
+ ["System Design","How does distributed tracing work? (2026 favorite)","A traceId is minted at the edge and propagated via headers through every hop; each unit of work is a span. That id in an error response is the exact thread to pull across all logs — Micrometer/OpenTelemetry standard now."],
+ ["System Design","Readiness vs liveness checks?","Liveness: is the process alive (restart if not). Readiness: can it serve traffic NOW (pull from LB if not — still starting, dependency down). Confusing them causes restart loops during dependency outages."],
+ ["System Design","Database per service vs shared database?","Per-service: real autonomy, but joins become API calls and consistency becomes sagas. Shared DB: simple and consistent, but schema-couples every service. Migrations run both during transition — with a version flag deciding ownership."],
+ ["System Design","Explain the strangler fig migration pattern.","Grow the new system around the old: route slice by slice (per endpoint/connection/record-version flag), both share data during transition, old dies gradually. Big-bang rewrites die; stranglers ship."],
+ ["System Design","Design a rate limiter.","Token bucket per client key at the gateway: refill rate R, burst B, 429 + Retry-After when empty. Distributed version needs shared counters (Redis) with atomic ops and expiry."],
+ ["System Design","How do you make a scheduled job safe to run on multiple instances?","Distributed lock or DB-level claim (UPDATE ... WHERE claimed = 0), idempotent work items, and heartbeats. Otherwise two instances double-process the same rows — a real daemon bug class."],
+ ["System Design","What are the three pillars of observability and one tool each?","Logs (Splunk/ELK), metrics (Prometheus/Micrometer dashboards), traces (Zipkin/OpenTelemetry). Logs tell you what, metrics when/how much, traces where."],
+ ["System Design","One user action is slow. Walk your diagnosis path.","Trace it: edge time → service time → dependency time (DB? downstream? GC?). Metrics locate the slow hop, the trace shows it per-request, logs explain it. Never guess-tune; measure first."],
+ ["System Design","How do you deploy with zero downtime?","More than one instance behind an LB, drain one side, deploy, health-check, shift back (two-leg/blue-green/rolling). Plus: DB migrations must be backward-compatible for the overlap window — expand, migrate, contract."],
+ ["System Design","Eventual consistency broke a user's expectation ('I saved it but it's not there'). Options?","Read-your-own-writes (route reads to the writer briefly), UI optimism, or accept-and-message. Name the trade explicitly — that's the senior answer interviewers want."],
+ ["Security & IAM","AuthN vs authZ — and the HTTP codes that map to them?","Authentication: who are you (fail = 401). Authorization: what may you do (fail = 403). Half of access tickets are solved by classifying which one failed."],
+ ["Security & IAM","Walk through validating a JWT properly.","Verify signature against the expected key (from JWKS), check exp/nbf, check issuer and audience, then trust claims. Also: pin the algorithm — never accept alg from the token itself."],
+ ["Security & IAM","JWT vs server-side sessions?","JWT: stateless, scales, works across services — but revocation is hard (short expiry + refresh). Sessions: instant revocation, one store — but sticky/shared state. Modern default: short-lived JWT + refresh token."],
+ ["Security & IAM","Where do you store tokens in a browser app?","HttpOnly, Secure, SameSite cookies (XSS can't read them) beat localStorage (any injected script reads it). With cookies, mind CSRF; with tokens-in-JS, mind XSS. There is no free option — name the trade."],
+ ["Security & IAM","Explain OAuth2 roles and the flow you'd use for a web app in 2026.","Resource owner (user), client (app), authorization server, resource server. Use authorization code + PKCE — implicit flow is dead. Client credentials for service-to-service."],
+ ["Security & IAM","OIDC vs OAuth2?","OAuth2 authorizes (access tokens, delegated access); OIDC adds authentication on top (ID token — a JWT stating who the user is). 'Login with X' is OIDC."],
+ ["Security & IAM","SAML vs OIDC — when each?","Same trust shape (IdP vouches to SP with signed proof). SAML: XML/redirects, entrenched in enterprise (your federation hub). OIDC: JSON/JWT, mobile/SPA-friendly, the modern default. Big IdPs speak both."],
+ ["Security & IAM","How are passwords stored correctly?","Salted slow hash: bcrypt/argon2/PBKDF2, unique salt per user, tuned cost factor. Never encrypted (keys leak), never fast-hashed (GPU brute force), never recoverable — reset only."],
+ ["Security & IAM","What is mTLS and where does it beat tokens?","Both sides present certificates during the handshake — identity at the transport layer, no bearer secret to steal. Service-to-service and partner APIs; ops cost = cert lifecycle (expiry outages)."],
+ ["Security & IAM","How does TOTP work end to end?","Enrollment shares a secret key; both sides compute truncate(HMAC(secret, time/30s)); server accepts a small window for clock skew. Same math in hardware tokens; drift beyond the window needs resync."],
+ ["Security & IAM","Why are passkeys phishing-resistant when OTPs aren't?","An OTP is a bearer secret — whoever phishes the 6 digits can replay them. A passkey signs the site's random challenge, bound to the origin, private key never leaving the device — nothing reusable exists to steal."],
+ ["Security & IAM","What is CSRF and when do you actually need protection?","A logged-in browser tricked into sending state-changing requests (cookie rides along automatically). Defenses: SameSite cookies, CSRF tokens. Pure Authorization-header token APIs are inherently immune."],
+ ["Security & IAM","What is XSS and the two defenses that matter?","Attacker script running in your page's context (stealing tokens, acting as the user). Defense: context-aware output encoding (frameworks do it — don't bypass) + Content-Security-Policy as backstop."],
+ ["Security & IAM","How do secrets reach an application correctly?","From a vault (Key Vault) resolved at startup/runtime with per-service identity and least privilege — never in code, git, or plaintext config. Rotation must not require a code change."],
+ ["Security & IAM","What is least privilege in practice for a backend team?","Read-only DB accounts for triage, per-service credentials scoped to owned resources, no shared admin logins, prod write access exceptional and audited. Blast-radius thinking as policy."],
+ ["Security & IAM","A partner reports your API rejects their client cert since last night. Nothing deployed. Triage?","Cert lifecycle first: expiry (theirs or your trust chain), rotation without re-registration, or a serial/format mismatch in the trust store. Handshake failures are config and certificates, almost never code."],
+ ["Modern Java","What are records and when do you use them?","Immutable data carriers: components declared once; constructor, accessors, equals/hashCode/toString generated. DTOs, map keys, value objects. Compact constructors validate."],
+ ["Modern Java","What are sealed classes/interfaces for?","The author lists ALL permitted subtypes — a closed hierarchy the compiler knows. With pattern-matching switch: exhaustive handling, no default needed, missing case = compile error."],
+ ["Modern Java","Pattern matching in modern Java?","instanceof binds the cast (if (o instanceof User u)); switch matches types/record components with guards. Sealed + records + switch = ADT-style domain modeling in Java."],
+ ["Modern Java","Text blocks — what and where?","Triple-quoted multiline strings preserving layout: SQL, JSON fixtures, templates. Readability, not semantics."],
+ ["Modern Java","var — the honest pros and cons?","Cuts redundancy when the type is obvious from the right side (var list = new ArrayList of String). Hurts when the right side is opaque (var x = service.process()). Local-only; type still fixed at compile time."],
+ ["Modern Java","Virtual threads: when do they help and when NOT?","Help: IO-bound thread-per-request work — millions of cheap blocking threads, no reactive rewrite. Not: CPU-bound work (same cores), and beware pinning via synchronized around blocking IO."],
+ ["Modern Java","What is structured concurrency?","Treating a set of concurrent subtasks as one unit with one lifetime: fork within a scope, join/cancel together, errors propagate — no leaked orphan threads. Pairs with virtual threads."],
+ ["Modern Java","Which Java versions matter and why LTS?","LTS releases (8, 11, 17, 21, 25) get long-term support; enterprises hop LTS-to-LTS. Know your migration story: 8→11 (modules, removals), 11→17 (records, sealed, switch), 17→21 (virtual threads, pattern matching)."],
+ ["Modern Java","What does jakarta.* vs javax.* signal in a codebase?","The Java-EE → Jakarta namespace handover (Spring Boot 3 / Tomcat 10 boundary). Mixed codebases mean bridging library versions — a real migration constraint, not trivia."],
+ ["Modern Java","GraalVM native image — trade-offs?","Compile ahead-of-time to a native binary: instant startup, low memory (serverless-friendly) — but longer builds, closed-world reflection config, no JIT peak optimization. Great for CLIs/functions; JVM still wins long-running hot services."],
+ ["Modern Java","Sequenced collections (Java 21)?","New interfaces (SequencedCollection/Map) giving uniform first/last/reversed operations across ordered collections — getFirst()/getLast()/reversed() everywhere ordered."],
+ ["Modern Java","An interviewer asks: 'We're on Java 8. Sell me the upgrade.'","Performance and GC improvements for free, security patches, records/switch/text blocks cutting boilerplate bugs, virtual threads replacing async complexity, and hiring — nobody wants to join a Java 8 shop in 2026."]
+];
+const iqCatsAll = [...new Set(IQ.map(q => q[0]))];
+let iqData = JSON.parse(localStorage.getItem('cc-iq') || '{}');
+let iqCat = 'All', iqSF = 'all';
+const iqCatsBox = document.getElementById('iqCats');
+['All', ...iqCatsAll].forEach(c => {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (c === 'All' ? ' on' : ''); b.textContent = c;
+  b.addEventListener('click', () => { iqCat = c; document.querySelectorAll('#iqCats .btn').forEach(x => x.classList.toggle('on', x === b)); renderIQ(); });
+  iqCatsBox.appendChild(b);
+});
+document.querySelectorAll('[data-sf]').forEach(b => b.addEventListener('click', () => {
+  iqSF = b.dataset.sf;
+  document.querySelectorAll('[data-sf]').forEach(x => x.classList.toggle('on', x === b));
+  renderIQ();
+}));
+function iqSummary(){
+  const vals = Object.values(iqData);
+  const know = vals.filter(v => v === 'know').length, rev = vals.filter(v => v === 'review').length;
+  const elK = document.getElementById('iqKnowN');
+  if (elK) { elK.textContent = know; document.getElementById('iqRevN').textContent = rev;
+    document.getElementById('iqTotalN').textContent = IQ.length;
+    document.getElementById('iqBar').style.width = (100 * know / IQ.length) + '%'; }
+  return know;
+}
+function renderIQ(){
+  const q = document.getElementById('iqSearch').value.toLowerCase();
+  const list = document.getElementById('iqList'); list.innerHTML = '';
+  let shown = 0;
+  IQ.forEach((item, i) => {
+    const st = iqData[i] || 'new';
+    if (iqCat !== 'All' && item[0] !== iqCat) return;
+    if (iqSF !== 'all' && ((iqSF === 'new' && st !== 'new') || (iqSF === 'review' && st !== 'review') || (iqSF === 'know' && st !== 'know'))) return;
+    if (q && !(item[1].toLowerCase().includes(q) || item[2].toLowerCase().includes(q))) return;
+    if (++shown > 60 && !q && iqCat === 'All' && iqSF === 'all') return;   // cap the "everything" view
+    const row = document.createElement('div'); row.className = 'iq-row';
+    row.innerHTML = '<div class="iq-q"><span class="iq-dot ' + (st === 'new' ? '' : st) + '"></span><span>' + item[1] +
+      ' <span class="gl-cat" style="font-weight:700">' + item[0] + '</span></span></div>' +
+      '<div class="iq-a">' + item[2] + '</div>' +
+      '<div class="iq-btns"><button class="btn good" type="button">✓ Knew it</button><button class="btn" type="button">↻ Review</button></div>';
+    row.querySelector('.iq-q').addEventListener('click', () => row.classList.toggle('open'));
+    const [knowB, revB] = row.querySelectorAll('.iq-btns .btn');
+    knowB.addEventListener('click', () => { iqData[i] = 'know'; localStorage.setItem('cc-iq', JSON.stringify(iqData)); row.querySelector('.iq-dot').className = 'iq-dot know'; row.classList.remove('open'); iqSummary(); });
+    revB.addEventListener('click', () => { iqData[i] = 'review'; localStorage.setItem('cc-iq', JSON.stringify(iqData)); row.querySelector('.iq-dot').className = 'iq-dot review'; row.classList.remove('open'); iqSummary(); });
+    list.appendChild(row);
+  });
+  if (shown > 60 && !q && iqCat === 'All' && iqSF === 'all') {
+    const note = document.createElement('p'); note.style.cssText = 'color:var(--muted);font-size:13.5px';
+    note.textContent = 'Showing 60 of ' + shown + ' — pick a category or search to see the rest.';
+    list.appendChild(note);
+  }
+}
+document.getElementById('iqSearch').addEventListener('input', renderIQ);
+iqSummary(); renderIQ();
+
 // ---------- walk mode ----------
 const walk = document.getElementById('walk');
-let walkQueue = [], walkPos = 0, walkReviewed = 0, wakeLock = null;
+let walkDeck = CARDS, walkQueue = [], walkPos = 0, walkReviewed = 0, wakeLock = null;
 function buildWalkQueue(){
-  const idx = CARDS.map((_, i) => i);
+  const idx = walkDeck.map((_, i) => i);
   for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
-  // unmastered cards first — walking time goes to what you don't know yet
-  walkQueue = [...idx.filter(i => !known.has(i)), ...idx.filter(i => known.has(i))];
+  // for flashcards: unmastered first — walking time goes to what you don't know yet
+  walkQueue = (walkDeck === CARDS)
+    ? [...idx.filter(i => !known.has(i)), ...idx.filter(i => known.has(i))]
+    : idx;
 }
 function renderWalk(){
   if (walkPos >= walkQueue.length) { buildWalkQueue(); walkPos = 0; }
-  const c = CARDS[walkQueue[walkPos]];
+  const c = walkDeck[walkQueue[walkPos]];
   walk.classList.remove('show-a');
   document.getElementById('walkTopic').textContent = c[0];
   document.getElementById('walkQ').textContent = c[1];
   document.getElementById('walkA').textContent = c[2];
   document.getElementById('walkCount').textContent = walkReviewed + ' reviewed';
 }
-document.getElementById('walkBtn').addEventListener('click', async () => {
-  buildWalkQueue(); walkPos = 0; walkReviewed = 0;
+async function openWalk(deck){
+  walkDeck = deck; buildWalkQueue(); walkPos = 0; walkReviewed = 0;
   walk.classList.add('on'); renderWalk();
   try { if (navigator.wakeLock) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+}
+document.getElementById('walkBtn').addEventListener('click', () => openWalk(CARDS));
+document.getElementById('iqDrillBtn').addEventListener('click', () => {
+  const pool = IQ.map((_, i) => i);
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  // prefer questions marked review, then new, then known — a real mock leans on weaknesses
+  const rank = i => (iqData[i] === 'review' ? 0 : !iqData[i] ? 1 : 2);
+  pool.sort((a, b) => rank(a) - rank(b));
+  openWalk(pool.slice(0, 10).map(i => IQ[i]));
 });
 document.getElementById('walkBody').addEventListener('click', () => {
   if (!walk.classList.contains('show-a')) { walk.classList.add('show-a'); }
