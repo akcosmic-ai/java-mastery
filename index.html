@@ -1,0 +1,1439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0E141B">
+<title>Code Companion — The IAM Engineer's Curriculum</title>
+<style>
+  :root{
+    --bg:#F5F7FA; --surface:#FFFFFF; --ink:#1B2430; --muted:#5A6676;
+    --line:#DCE3EB; --accent:#A85F00; --accent-bg:#FBF3E4;
+    --good:#1E7F4F; --good-bg:#E7F4ED; --bad:#B3352C; --bad-bg:#FBEAE8;
+    --code-bg:#101822; --code-ink:#D8E2EC; --code-accent:#7FB4E8; --code-str:#A8D5A2; --code-kw:#E8A33D;
+    --shadow:0 1px 3px rgba(20,30,45,.08);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0E141B; --surface:#161F2A; --ink:#E5EAF0; --muted:#93A1B1;
+      --line:#26313E; --accent:#E8A33D; --accent-bg:#2A2315;
+      --good:#4CC38A; --good-bg:#15291F; --bad:#E5786F; --bad-bg:#2E1B19;
+      --shadow:0 1px 3px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#F5F7FA; --surface:#FFFFFF; --ink:#1B2430; --muted:#5A6676;
+    --line:#DCE3EB; --accent:#A85F00; --accent-bg:#FBF3E4;
+    --good:#1E7F4F; --good-bg:#E7F4ED; --bad:#B3352C; --bad-bg:#FBEAE8;
+    --shadow:0 1px 3px rgba(20,30,45,.08);
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E141B; --surface:#161F2A; --ink:#E5EAF0; --muted:#93A1B1;
+    --line:#26313E; --accent:#E8A33D; --accent-bg:#2A2315;
+    --good:#4CC38A; --good-bg:#15291F; --bad:#E5786F; --bad-bg:#2E1B19;
+    --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg); color:var(--ink);
+    font:16px/1.65 "Segoe UI", -apple-system, "Helvetica Neue", Roboto, sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  header{position:sticky; top:0; z-index:10; background:var(--bg); border-bottom:1px solid var(--line); padding:0 16px;}
+  .masthead{max-width:800px; margin:0 auto; padding:14px 0 0;}
+  .masthead h1{font-size:17px; margin:0; letter-spacing:.2px;}
+  .masthead h1 .tick{color:var(--accent); font-family:ui-monospace,"Cascadia Code",Consolas,monospace;}
+  .masthead p{margin:2px 0 10px; font-size:12.5px; color:var(--muted);}
+  nav{max-width:800px; margin:0 auto; display:flex; gap:2px; overflow-x:auto; scrollbar-width:none;}
+  nav::-webkit-scrollbar{display:none}
+  nav button{appearance:none; border:none; background:none; color:var(--muted);
+    font:600 13.5px/1 inherit; font-family:inherit; padding:10px 11px 12px; cursor:pointer;
+    border-bottom:2px solid transparent; white-space:nowrap;}
+  nav button[aria-selected="true"]{color:var(--accent); border-bottom-color:var(--accent);}
+  nav button:focus-visible{outline:2px solid var(--accent); outline-offset:-2px; border-radius:4px;}
+  main{max-width:800px; margin:0 auto; padding:20px 16px 80px;}
+  section[hidden]{display:none}
+  h2{font-size:22px; margin:26px 0 6px; letter-spacing:-.2px; text-wrap:balance;}
+  h2:first-child{margin-top:4px}
+  .lede{color:var(--muted); font-size:14.5px; margin:0 0 18px; max-width:64ch;}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    padding:18px 18px 16px; margin:0 0 14px; box-shadow:var(--shadow); position:relative;}
+  .card h3{margin:0 0 8px; font-size:16.5px; padding-right:86px;}
+  .eyebrow{display:block; font-size:11px; font-weight:700; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .card p{margin:8px 0; max-width:66ch;}
+  .card ul,.card ol{margin:8px 0; padding-left:22px; max-width:64ch;}
+  .card li{margin:4px 0}
+  .learnbtn{position:absolute; top:14px; right:14px; appearance:none; cursor:pointer;
+    border:1px solid var(--line); background:var(--surface); color:var(--muted);
+    font:600 11.5px/1 inherit; font-family:inherit; padding:6px 9px; border-radius:999px;}
+  .learnbtn.on{border-color:var(--good); color:var(--good); background:var(--good-bg);}
+  pre{background:var(--code-bg); color:var(--code-ink); border-radius:8px;
+    padding:14px 16px; overflow-x:auto; font:13px/1.55 ui-monospace,"Cascadia Code","SF Mono",Consolas,monospace; margin:12px 0;}
+  code{font-family:ui-monospace,"Cascadia Code","SF Mono",Consolas,monospace; font-size:.92em;}
+  p code, li code, td code{background:var(--accent-bg); color:var(--ink); padding:1px 5px; border-radius:4px;}
+  pre .k{color:var(--code-kw)} pre .s{color:var(--code-str)} pre .c{color:#7E8DA0} pre .t{color:var(--code-accent)}
+  table{border-collapse:collapse; width:100%; font-size:14px; margin:10px 0;}
+  .tablewrap{overflow-x:auto}
+  th,td{text-align:left; padding:7px 10px; border-bottom:1px solid var(--line); vertical-align:top;}
+  th{font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);}
+  td{font-variant-numeric:tabular-nums}
+  .reveal-box{border:1px dashed var(--line); border-radius:8px; padding:12px 14px; margin:12px 0 4px;}
+  .reveal-box>button{appearance:none; border:none; background:none; padding:0; cursor:pointer;
+    color:var(--accent); font:600 13.5px/1.4 inherit; font-family:inherit; text-align:left;}
+  .reveal-box>button::before{content:"▸ "}
+  .reveal-box.open>button::before{content:"▾ "}
+  .reveal-box .answer{display:none; margin-top:10px; padding-top:10px; border-top:1px solid var(--line);}
+  .reveal-box.open .answer{display:block}
+  .reveal-box .answer p:first-child{margin-top:0}
+  .why{background:var(--accent-bg); border-radius:8px; padding:10px 14px; margin:12px 0 2px; font-size:13.5px;}
+  .why b{color:var(--accent)}
+  /* path dashboard */
+  .stat-row{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:0 0 16px;}
+  .stat{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:14px 16px; box-shadow:var(--shadow);}
+  .stat .n{font-size:26px; font-weight:700; font-variant-numeric:tabular-nums;}
+  .stat .l{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em;}
+  .bar{height:8px; background:var(--line); border-radius:99px; overflow:hidden; margin-top:6px;}
+  .bar>i{display:block; height:100%; background:var(--accent); border-radius:99px; transition:width .3s;}
+  .topicline{display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--line);}
+  .topicline:last-child{border-bottom:none}
+  .topicline .name{flex:0 0 130px; font-weight:600; font-size:14px;}
+  .topicline .bar{flex:1; margin-top:0}
+  .topicline .pct{flex:0 0 68px; text-align:right; font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums;}
+  .miles label{display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-bottom:1px solid var(--line); cursor:pointer; font-size:14.5px;}
+  .miles label:last-child{border-bottom:none}
+  .miles input{margin-top:4px; accent-color:var(--good);}
+  .miles .done{color:var(--muted); text-decoration:line-through;}
+  /* flashcards + quiz */
+  .deck{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:22px 20px; box-shadow:var(--shadow);}
+  .deck .topic{font-size:11px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--accent);}
+  .deck .q{font-size:18px; font-weight:600; margin:10px 0 4px; min-height:56px; text-wrap:balance;}
+  .deck .a{display:none; margin-top:14px; padding-top:14px; border-top:1px solid var(--line);}
+  .deck.flipped .a{display:block}
+  .deckbar{display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;}
+  .btn{appearance:none; border:1px solid var(--line); background:var(--surface); color:var(--ink);
+    font:600 14px/1 inherit; font-family:inherit; padding:11px 16px; border-radius:8px; cursor:pointer;}
+  .btn:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .btn.good{background:var(--good-bg); border-color:var(--good); color:var(--good);}
+  .deckmeta{display:flex; justify-content:space-between; align-items:center; margin:0 0 12px; font-size:13px; color:var(--muted);}
+  .deckmeta b{color:var(--ink)}
+  .quiz-opt{display:block; width:100%; text-align:left; margin:8px 0; padding:12px 14px; border:1px solid var(--line);
+    border-radius:8px; background:var(--surface); color:var(--ink); font:500 14.5px/1.45 inherit; font-family:inherit; cursor:pointer;}
+  .quiz-opt.correct{border-color:var(--good); background:var(--good-bg);}
+  .quiz-opt.wrong{border-color:var(--bad); background:var(--bad-bg);}
+  .quiz-exp{display:none; background:var(--accent-bg); border-radius:8px; padding:10px 14px; margin-top:10px; font-size:14px;}
+  .quiz-exp.show{display:block}
+  .themebtn{position:fixed; right:14px; bottom:14px; z-index:20; border-radius:999px; padding:10px 14px; box-shadow:var(--shadow);}
+  footer{max-width:800px; margin:0 auto; padding:10px 16px 30px; color:var(--muted); font-size:12.5px;}
+</style>
+</head>
+<body>
+<header>
+  <div class="masthead">
+    <h1><span class="tick">&gt;_</span> Code Companion</h1>
+    <p>The IAM engineer's curriculum — Java · Spring · SQL · DSA · Architecture · Identity. Think first, then reveal.</p>
+  </div>
+  <nav role="tablist" aria-label="Topics">
+    <button role="tab" aria-selected="true"  data-tab="path">Path</button>
+    <button role="tab" aria-selected="false" data-tab="java">Java</button>
+    <button role="tab" aria-selected="false" data-tab="spring">Spring</button>
+    <button role="tab" aria-selected="false" data-tab="sql">SQL</button>
+    <button role="tab" aria-selected="false" data-tab="dsa">DSA</button>
+    <button role="tab" aria-selected="false" data-tab="arch">Architecture</button>
+    <button role="tab" aria-selected="false" data-tab="idsec">Identity</button>
+    <button role="tab" aria-selected="false" data-tab="craft">Code Craft</button>
+    <button role="tab" aria-selected="false" data-tab="cards">Drill</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- ================= PATH ================= -->
+<section id="tab-path">
+  <h2>Your path</h2>
+  <p class="lede">Every card in this app has a <b>Learned</b> toggle — mark it only after you can explain the idea out loud without looking. This page tracks the honest count.</p>
+
+  <div class="stat-row">
+    <div class="stat"><div class="n" id="statStreak">–</div><div class="l">day streak</div></div>
+    <div class="stat"><div class="n" id="statLearned">–</div><div class="l">cards learned</div><div class="bar"><i id="statLearnedBar"></i></div></div>
+    <div class="stat"><div class="n" id="statCards">–</div><div class="l">flashcards "got it"</div></div>
+    <div class="stat"><div class="n" id="statQuiz">–</div><div class="l">best quiz score</div></div>
+  </div>
+
+  <div class="card">
+    <span class="eyebrow">Progress by topic</span>
+    <h3>Where you stand</h3>
+    <div id="topicBars"></div>
+  </div>
+
+  <div class="card">
+    <span class="eyebrow">The road</span>
+    <h3>Milestones — in order, no skipping</h3>
+    <div class="miles" id="milestones"></div>
+  </div>
+
+  <div class="card">
+    <span class="eyebrow">How to use this app</span>
+    <h3>The daily loop (45 min)</h3>
+    <ol>
+      <li><b>One LeetCode problem</b> (15–20 min) — tiny example by hand → brute force out loud → code it.</li>
+      <li><b>One codebase question at work</b> (15 min) — one file, one question, one <code>file:line</code> answer.</li>
+      <li><b>Recall</b> (10 min) — the Drill tab here: flashcards until "got it", or one quiz run.</li>
+    </ol>
+    <p>Reading this page replaces <em>none</em> of those three. It's for the in-between moments — the train, the queue, the couch — turning dead time into reps.</p>
+  </div>
+</section>
+
+<!-- ================= JAVA ================= -->
+<section id="tab-java" hidden>
+  <h2>Java — the ideas your codebase is built on</h2>
+  <p class="lede">Examples mirror real platform patterns with names simplified for study. Answer the hidden question in your head before you tap.</p>
+
+  <div class="card" data-learn="java-1">
+    <span class="eyebrow">Foundations</span>
+    <h3>References: two variables, one object</h3>
+    <p>Primitives (<code>int</code>, <code>boolean</code>…): the variable <em>is</em> the value. Everything else: the variable <em>points to</em> an object on the heap. Two references can share one object — mutate through one, the other sees it.</p>
+<pre><span class="t">List</span>&lt;String&gt; x = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+<span class="t">List</span>&lt;String&gt; y = x;      <span class="c">// same object, two names</span>
+y.add(<span class="s">"hello"</span>);
+x.size();                 <span class="c">// 1 — x sees it</span></pre>
+    <div class="reveal-box"><button type="button">A method receives your list and adds an item. Does the caller's list change? Why?</button>
+      <div class="answer"><p>Yes. The method got a copy of the <em>reference</em>, not the list — both point at the same heap object. This is why helpers can mutate DTOs you pass in, and why defensive copies exist.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="java-2">
+    <span class="eyebrow">Foundations</span>
+    <h3>Stack, heap, and garbage collection</h3>
+    <p>Each thread gets a <b>stack</b>: one frame per method call holding locals and parameters — created on call, destroyed on return. Objects live on the shared <b>heap</b> and survive as long as anything references them. The <b>garbage collector</b> frees heap objects nothing points to anymore.</p>
+    <ul>
+      <li>A method's local variables can never be seen by another thread — that's why locals are automatically thread-safe.</li>
+      <li>A "memory leak" in Java = objects still referenced that you'll never use again (a static Map that only ever grows, an unbounded cache).</li>
+      <li>Stack trace = a snapshot of one thread's stack, frame by frame. You already read these daily.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Why can a service's <em>field</em> cause a race between two requests but a <em>local variable</em> can't?</button>
+      <div class="answer"><p>The field lives on the heap inside one shared singleton object — both request threads see it. Locals live in each thread's own stack frame; there's physically no sharing.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="java-3">
+    <span class="eyebrow">Foundations</span>
+    <h3><code>==</code> vs <code>.equals()</code> — and the hashCode contract</h3>
+<pre>a == b            <span class="c">// same object?  (identity)</span>
+a.equals(b)       <span class="c">// same content? (what you almost always mean)</span>
+<span class="s">"ACTIVE"</span>.equals(status)   <span class="c">// null-safe: literal first</span></pre>
+    <p><b>The contract:</b> if two objects are equal, they must return the same <code>hashCode()</code>. HashMap/HashSet find things by hash bucket <em>first</em>, equals second — break the contract and your object goes in but never comes back out.</p>
+    <div class="reveal-box"><button type="button">You use a hand-written class as a HashMap key without overriding equals/hashCode. What happens?</button>
+      <div class="answer"><p>Default identity semantics apply: two "identical" keys are different objects with different hashes, so <code>get</code> misses what <code>put</code> stored. Lookups mysteriously return null. Use records, or override both, or don't key on it.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="java-4">
+    <span class="eyebrow">Design</span>
+    <h3>Immutability + records</h3>
+    <p>An immutable object can't change after construction — no setters, <code>final</code> fields. It's automatically thread-safe, safe to share, safe to cache, safe to use as a map key. Java records give you it in one line:</p>
+<pre><span class="k">public record</span> <span class="t">CredentialDto</span>(<span class="t">String</span> ref, <span class="t">String</span> type, <span class="t">String</span> status) {}
+<span class="c">// constructor, getters, equals, hashCode, toString — all generated, all correct</span></pre>
+    <p>Rule of thumb: DTOs and value objects → immutable. Entities with a lifecycle (a credential moving through states) → mutable, but only through <em>guarded methods</em>.</p>
+    <div class="reveal-box"><button type="button">Why are immutable objects automatically thread-safe?</button>
+      <div class="answer"><p>Race conditions are two threads seeing a value mid-change. No change, no "mid." There is nothing to synchronize because there is nothing to protect.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="java-5">
+    <span class="eyebrow">Design</span>
+    <h3>Enums as state machines</h3>
+<pre><span class="k">public enum</span> <span class="t">CredStatus</span> {
+    CREATED, PENDING_ACTIVATION, ACTIVE, SUSPENDED, REVOKED;
+
+    <span class="k">public boolean</span> canSign() { <span class="k">return</span> <span class="k">this</span> == ACTIVE; }
+
+    <span class="k">public boolean</span> canBecome(<span class="t">CredStatus</span> next) {
+        <span class="k">switch</span> (<span class="k">this</span>) {
+            <span class="k">case</span> CREATED:            <span class="k">return</span> next == PENDING_ACTIVATION;
+            <span class="k">case</span> PENDING_ACTIVATION: <span class="k">return</span> next == ACTIVE || next == REVOKED;
+            <span class="k">case</span> ACTIVE:             <span class="k">return</span> next == SUSPENDED || next == REVOKED;
+            <span class="k">case</span> SUSPENDED:          <span class="k">return</span> next == ACTIVE || next == REVOKED;
+            <span class="k">default</span>:                 <span class="k">return false</span>;
+        }
+    }
+}</pre>
+    <div class="reveal-box"><button type="button">A token was added but never verified. Which state, and why can't it sign?</button>
+      <div class="answer"><p><code>PENDING_ACTIVATION</code> — created, awaiting proof-of-possession. <code>canSign()</code> only passes for ACTIVE. A failure mid-verification parks it here forever: a real production bug class.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="java-6">
+    <span class="eyebrow">Design</span>
+    <h3>Interfaces + the Factory pattern</h3>
+    <p>An interface is a contract; a factory picks which implementation honors it. Callers never write <code>if (type == …)</code> — each type's rules live in its own class.</p>
+<pre><span class="k">interface</span> <span class="t">CredHelper</span> { <span class="k">void</span> validateForAdd(<span class="t">String</span> ref); <span class="k">void</span> bind(<span class="t">String</span> ref); }
+
+<span class="k">class</span> <span class="t">HardwareTokenHelper</span> <span class="k">implements</span> <span class="t">CredHelper</span> { <span class="c">/* serial checks */</span> }
+<span class="k">class</span> <span class="t">PhoneHelper</span>         <span class="k">implements</span> <span class="t">CredHelper</span> { <span class="c">/* SMS checks */</span> }
+
+<span class="k">static</span> <span class="t">CredHelper</span> forType(<span class="t">String</span> type) {
+    <span class="k">switch</span> (type) {
+        <span class="k">case</span> <span class="s">"hw_tok"</span>: <span class="k">return new</span> <span class="t">HardwareTokenHelper</span>();
+        <span class="k">case</span> <span class="s">"oob"</span>:    <span class="k">return new</span> <span class="t">PhoneHelper</span>();
+        <span class="k">default</span>: <span class="k">throw new</span> <span class="t">IllegalArgumentException</span>(type);
+    }
+}</pre>
+    <div class="reveal-box"><button type="button">Passkeys arrive as a new credential type. What changes — and what deliberately doesn't?</button>
+      <div class="answer"><p>One new class + one factory case. Zero changes to callers or existing helpers. That isolation is the point — the Open/Closed Principle in practice, and the architecture of your credential and proofing subsystems.</p></div>
+    </div>
+    <div class="why"><b>Chunking payoff:</b> once you see "one contract, one dispatcher, one class per type," a 30-file package reads as three things, not thirty.</div>
+  </div>
+
+  <div class="card" data-learn="java-7">
+    <span class="eyebrow">Tools</span>
+    <h3>Collections: the four workhorses</h3>
+    <div class="tablewrap"><table>
+      <tr><th>Need</th><th>Use</th><th>Cost</th></tr>
+      <tr><td>Ordered items, duplicates fine</td><td><code>ArrayList</code></td><td>index O(1), search O(n)</td></tr>
+      <tr><td>Find by key</td><td><code>HashMap</code></td><td>O(1)</td></tr>
+      <tr><td>"Seen it before?"</td><td><code>HashSet</code></td><td>O(1)</td></tr>
+      <tr><td>Process in arrival order</td><td><code>ArrayDeque</code></td><td>O(1) both ends</td></tr>
+    </table></div>
+<pre><span class="c">// group creds by user — the idiom of a career</span>
+byUser.computeIfAbsent(c.userRef(), k -&gt; <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;()).add(c);
+
+<span class="c">// count events by type</span>
+counts.merge(e.type(), 1, <span class="t">Integer</span>::sum);</pre>
+    <div class="reveal-box"><button type="button">What does <code>computeIfAbsent</code> do, in one sentence?</button>
+      <div class="answer"><p>"Give me the value for this key — and if there isn't one yet, create it, store it, and give me that." It replaces the four-line if-missing-then-put dance.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="java-8">
+    <span class="eyebrow">Tools</span>
+    <h3>Generics: read one layer at a time</h3>
+    <p><code>List&lt;Credential&gt;</code> = a list that only holds Credentials, checked at compile time. When a signature scares you, <b>cover the angle brackets with your hand</b> and uncover one layer at a time:</p>
+<pre><span class="t">ResponseEntity</span>&lt;<span class="t">ApiResponse</span>&lt;<span class="t">List</span>&lt;CredDto&gt;&gt;&gt; r;
+<span class="c">// "a ResponseEntity…            (what the HTTP layer returns)</span>
+<span class="c">//    containing an ApiResponse…  (the envelope)</span>
+<span class="c">//      containing a list of CredDto" (the payload)</span>
+
+<span class="k">static</span> &lt;T&gt; T firstOrNull(<span class="t">List</span>&lt;T&gt; list) {   <span class="c">// works for ANY element type</span>
+    <span class="k">return</span> list.isEmpty() ? <span class="k">null</span> : list.get(0);
+}</pre>
+    <div class="reveal-box"><button type="button">Decode out loud: <code>Map&lt;String, List&lt;Map&lt;String, Object&gt;&gt;&gt;</code></button>
+      <div class="answer"><p>A map from String keys… to lists… of maps from String to Object. (Layer by layer — never all at once. And if you ever design one of these yourself, make a named class instead.)</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="java-9">
+    <span class="eyebrow">Tools</span>
+    <h3>Streams: loops as pipelines</h3>
+<pre><span class="t">List</span>&lt;String&gt; refs = creds.stream()
+    .filter(c -&gt; c.status() == ACTIVE)   <span class="c">// keep or drop</span>
+    .map(<span class="t">Cred</span>::ref)                      <span class="c">// transform each</span>
+    .toList();                            <span class="c">// terminal op — NOW it runs</span>
+
+<span class="t">Map</span>&lt;Status, <span class="t">List</span>&lt;Cred&gt;&gt; byStatus =
+    creds.stream().collect(<span class="t">Collectors</span>.groupingBy(<span class="t">Cred</span>::status));</pre>
+    <div class="reveal-box"><button type="button"><code>filter</code> vs <code>map</code> — the one-line difference?</button>
+      <div class="answer"><p>Filter chooses (fewer elements, same type); map converts (same count, possibly new type).</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="java-10">
+    <span class="eyebrow">Tools</span>
+    <h3>Optional: absence with a seatbelt</h3>
+<pre><span class="t">Optional</span>&lt;Cred&gt; cred = findByRef(ref);
+<span class="t">Cred</span> c = cred.orElseThrow(() -&gt; <span class="k">new</span> <span class="t">NotFoundException</span>(ref));
+<span class="t">String</span> type = cred.map(<span class="t">Cred</span>::type).orElse(<span class="s">"none"</span>);
+<span class="c">// never: cred.get() unguarded — that's an NPE with extra steps</span></pre>
+    <div class="reveal-box"><button type="button">What does a return type of <code>Optional&lt;Cred&gt;</code> tell every caller?</button>
+      <div class="answer"><p>"Not finding one is a normal outcome you must decide about" — at compile time, instead of a null that explodes three layers later.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="java-11">
+    <span class="eyebrow">Robustness</span>
+    <h3>Exceptions: never swallow, always wrap</h3>
+<pre><span class="k">try</span> {
+    helper.bind(ref);
+} <span class="k">catch</span> (<span class="t">BindingException</span> e) {
+    <span class="k">throw new</span> <span class="t">ApiException</span>(<span class="s">"binding failed for ref="</span> + ref, e);  <span class="c">// context + cause</span>
+} <span class="k">finally</span> {
+    releaseConnection();   <span class="c">// runs no matter what</span>
+}</pre>
+    <p>Checked = expected failures the caller must handle. Unchecked = bugs. Reading a trace: jump to the <em>last</em> <code>Caused by:</code>, then the first line in your own package.</p>
+    <div class="reveal-box"><button type="button">Why is <code>catch (Exception e) { log(e.getMessage()); }</code> a bug factory?</button>
+      <div class="answer"><p>It drops the stack trace and cause chain — "null" is all you'll know. Log the exception object, or wrap and rethrow. Swallowed exceptions turn one-hour investigations into one-week ones.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="java-12">
+    <span class="eyebrow">Robustness</span>
+    <h3>Thread safety in one rule</h3>
+    <p>Every HTTP request runs on its own thread; Spring services are singletons shared by all of them. So: <b>no per-request state in service fields.</b> Per-request data lives in parameters and locals (which are per-thread by construction — see the stack/heap card).</p>
+    <div class="reveal-box"><button type="button">A service sets <code>private User currentUser;</code> at the start of each request. What goes wrong?</button>
+      <div class="answer"><p>Two simultaneous requests overwrite each other — request A acts on B's user. Intermittent, invisible in dev, catastrophic in prod. The classic shared-singleton race.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SPRING ================= -->
+<section id="tab-spring" hidden>
+  <h2>Spring Boot — the container, demystified</h2>
+  <p class="lede">One mental model explains 90% of Spring: at startup, a container scans for your classes, creates one instance of each, and wires them into each other's constructors.</p>
+
+  <div class="card" data-learn="spring-1">
+    <span class="eyebrow">Core</span>
+    <h3>What the container does at startup</h3>
+    <ol>
+      <li><b>Scan</b> packages for <code>@Component / @Service / @Repository / @RestController</code></li>
+      <li><b>Create</b> one instance of each (a "bean" — singleton by default)</li>
+      <li><b>Inject</b>: constructors that need other beans get them passed in</li>
+      <li><b>Auto-configure</b> from the classpath: web starter present → embedded Tomcat + JSON, ready</li>
+    </ol>
+<pre><span class="k">@Service</span>
+<span class="k">public class</span> <span class="t">CredService</span> {
+    <span class="k">private final</span> <span class="t">CredRepository</span> repo;         <span class="c">// final + constructor = injected</span>
+    <span class="k">public</span> <span class="t">CredService</span>(<span class="t">CredRepository</span> repo) { <span class="k">this</span>.repo = repo; }
+}</pre>
+    <div class="reveal-box"><button type="button">Why is injection better than <code>new CredRepository()</code> inside the service?</button>
+      <div class="answer"><p>The class declares <em>what</em> it needs, not <em>how</em> to build it. Tests hand it a fake; swapping implementations touches no callers. It's the factory pattern applied to the whole app, automatically.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="spring-2">
+    <span class="eyebrow">Core</span>
+    <h3>Life of a request — memorize the chain</h3>
+<pre>POST /v1/users/abc/credentials  {"type":"hw_tok"}
+  ▼  Tomcat accepts socket → assigns a worker THREAD
+  ▼  FILTER CHAIN runs (JWT verified HERE — before any controller)
+  ▼  DispatcherServlet: which controller matches POST + path?
+  ▼  Jackson: JSON body → your @RequestBody object
+  ▼  controller → service → repository → database
+  ▼  return value → Jackson → JSON response</pre>
+    <div class="reveal-box"><button type="button">Bad JWT arrives — does controller code run at all?</button>
+      <div class="answer"><p>No. The security filter rejects with 401 before routing. That's why auth bugs get debugged in filters and security config, never in controllers.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="spring-3">
+    <span class="eyebrow">Core</span>
+    <h3>The binding annotations</h3>
+<pre><span class="k">@PostMapping</span>(<span class="s">"/{userRef}/credentials"</span>)
+<span class="k">public</span> <span class="t">ResponseEntity</span>&lt;CredDto&gt; add(
+    <span class="k">@PathVariable</span> <span class="t">String</span> userRef,                    <span class="c">// URL segment</span>
+    <span class="k">@RequestParam</span>(required=<span class="k">false</span>) <span class="t">String</span> status,     <span class="c">// ?status=ACTIVE</span>
+    <span class="k">@RequestBody</span> <span class="t">AddCredRequest</span> body) { ... }        <span class="c">// JSON body</span></pre>
+    <div class="tablewrap"><table>
+      <tr><th>Annotation</th><th>Reads from</th></tr>
+      <tr><td><code>@PathVariable</code></td><td>URL path <code>/users/{userRef}</code></td></tr>
+      <tr><td><code>@RequestParam</code></td><td>query string</td></tr>
+      <tr><td><code>@RequestBody</code></td><td>JSON body via Jackson</td></tr>
+      <tr><td><code>@RequestHeader</code></td><td>HTTP header</td></tr>
+    </table></div>
+  </div>
+
+  <div class="card" data-learn="spring-4">
+    <span class="eyebrow">Structure</span>
+    <h3>Three layers, strictly separated</h3>
+<pre>controller/   HTTP in/out ONLY — thin
+service/      business rules, orchestration, transactions
+repository/   database access ONLY
+dto/          the API's shape      entity/  the table's shape</pre>
+    <p>Reading order for any endpoint: controller (30 seconds), the one service method (the logic), the repository calls (what persists). Never start in a util class.</p>
+    <div class="reveal-box"><button type="button">Why DTOs separate from entities?</button>
+      <div class="answer"><p>API contract and DB schema change for different reasons. Separation means a new column doesn't leak into the API and an API rename doesn't demand a migration — the service mapping absorbs change.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="spring-5">
+    <span class="eyebrow">Structure</span>
+    <h3><code>@Transactional</code>: all or nothing</h3>
+<pre><span class="k">@Transactional</span>
+<span class="k">public void</span> bindCredential(<span class="t">String</span> userRef, <span class="t">String</span> credRef) {
+    credRepo.setStatus(credRef, <span class="s">"ACTIVE"</span>);
+    eventRepo.insert(<span class="k">new</span> <span class="t">AppEvent</span>(<span class="s">"credAddOk"</span>, userRef));
+    <span class="c">// both commit together — an exception rolls back BOTH</span>
+}</pre>
+    <div class="reveal-box"><button type="button">The famous gotcha: a @Transactional method calls another method in the same class. What happens?</button>
+      <div class="answer"><p>No transaction. Spring wraps beans in a proxy; only <em>external</em> calls pass through it. <code>this.method()</code> bypasses the proxy. Classic interview question, classic real bug.</p></div>
+    </div>
+    <div class="why"><b>Triage smell:</b> "state changed but no event row" (or the reverse) = writes that should have shared a transaction and didn't.</div>
+  </div>
+
+  <div class="card" data-learn="spring-6">
+    <span class="eyebrow">Structure</span>
+    <h3>JPA: rows as objects</h3>
+<pre><span class="k">@Entity @Table</span>(name = <span class="s">"USERS"</span>)
+<span class="k">public class</span> <span class="t">UserAccount</span> {
+    <span class="k">@Id @GeneratedValue</span> <span class="k">private</span> <span class="t">Long</span> id;
+    <span class="k">@Column</span>(name = <span class="s">"EMAIL_ADDR"</span>) <span class="k">private</span> <span class="t">String</span> email;
+}
+
+<span class="k">interface</span> <span class="t">UserRepo</span> <span class="k">extends</span> <span class="t">JpaRepository</span>&lt;UserAccount, <span class="t">Long</span>&gt; {
+    <span class="t">Optional</span>&lt;UserAccount&gt; findByEmail(<span class="t">String</span> email);  <span class="c">// query GENERATED from the name</span>
+}</pre>
+    <p>Derived queries parse the method name: <code>findBy</code> + field + condition. Magic, but learnable magic. Legacy half of your platform does the same job with a code generator instead (schema file → generated data-access classes) — different era, same rows-to-objects idea.</p>
+    <div class="reveal-box"><button type="button">What SQL does <code>findByStatusOrderByIdDesc(String s)</code> produce, roughly?</button>
+      <div class="answer"><p><code>SELECT * FROM table WHERE status = ? ORDER BY id DESC</code>. The name IS the query definition.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="spring-7">
+    <span class="eyebrow">Operations</span>
+    <h3>Where configuration comes from — three layers</h3>
+    <ul>
+      <li><b>Properties / config server</b> — deployment config: ports, URLs, per-environment values</li>
+      <li><b>Key Vault / secret store</b> — credentials and connection strings, resolved at startup</li>
+      <li><b>Config database</b> — per-client business flags, changeable at runtime without redeploy</li>
+    </ul>
+    <div class="reveal-box"><button type="button">A client needs different signing rules than everyone else. Which layer and why?</button>
+      <div class="answer"><p>Config database — per-client, business-level, no redeploy. Properties are per-environment (not per-client); the vault is for secrets, not behavior. Knowing WHICH layer holds a setting is half of config triage.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="spring-8">
+    <span class="eyebrow">Operations</span>
+    <h3>Bean scope + lifecycle (the parts that matter)</h3>
+    <ul>
+      <li><b>Singleton</b> (default): one instance forever → must be stateless per-request.</li>
+      <li>Startup order: construct → inject → <code>@PostConstruct</code> init hooks → ready. Slow startup? Something's init hook is doing real work (loading config, warming caches).</li>
+      <li><code>@Value("${my.prop}")</code> and <code>@ConfigurationProperties</code> pull property values into beans at construction time — config is <em>frozen into the bean</em> at startup unless the app explicitly supports refresh.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">You changed a property and restarted nothing. The service still behaves old. Why?</button>
+      <div class="answer"><p>The value was injected at startup and lives in the bean's field now. Without a refresh mechanism (or a runtime config DB read), property changes need a restart. "Did it reload?" is a real triage question.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="spring-9">
+    <span class="eyebrow">Operations</span>
+    <h3>JWT security in one diagram</h3>
+<pre>request ──► filter: extract "Authorization: Bearer &lt;jwt&gt;"
+             ├─ verify SIGNATURE against known key   (integrity)
+             ├─ check EXPIRY + claims                (freshness/scope)
+             ├─ ok  → principal into SecurityContext, continue
+             └─ bad → 401, controller never runs</pre>
+    <p>A JWT is <code>header.payload.signature</code>, base64. The signature proves nobody tampered; the payload is <b>readable by anyone</b> — never put secrets in claims.</p>
+  </div>
+
+  <div class="card" data-learn="spring-10">
+    <span class="eyebrow">Operations</span>
+    <h3>Testing: the pyramid you'll actually use</h3>
+<pre><span class="c">// unit: no Spring, no DB — Mockito fakes the deps. Milliseconds.</span>
+<span class="t">CredRepository</span> repo = mock(<span class="t">CredRepository</span>.<span class="k">class</span>);
+<span class="t">CredService</span> service = <span class="k">new</span> <span class="t">CredService</span>(repo);
+assertThrows(<span class="t">IllegalArgumentException</span>.<span class="k">class</span>,
+    () -&gt; service.add(<span class="s">"u1"</span>, <span class="k">new</span> <span class="t">AddReq</span>(<span class="s">"bogus"</span>, <span class="s">"x"</span>)));
+verify(repo, never()).insert(any());</pre>
+    <p>Habit: every piece of logic gets two tests minimum — one happy path, one failure path. Writing the failure test is what teaches you where bugs live.</p>
+    <div class="reveal-box"><button type="button">Why does constructor injection make this test possible?</button>
+      <div class="answer"><p>The dependency comes in through the front door, so the test can hand in a mock. Field-injected or <code>new</code>-ed dependencies can't be swapped without Spring machinery.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SQL ================= -->
+<section id="tab-sql" hidden>
+  <h2>SQL — set thinking, not loops</h2>
+  <p class="lede">A query describes a result; the engine finds the how. Tables here are simplified stand-ins: <code>USERS</code>, <code>CREDS</code>, <code>EVENTS</code>, <code>CLIENTS</code>.</p>
+
+  <div class="card" data-learn="sql-1">
+    <span class="eyebrow">Model</span>
+    <h3>The real execution order</h3>
+<pre>you write:        it actually runs:
+SELECT   (5)      1. FROM + JOINs   build the row set
+FROM     (1)      2. WHERE          filter rows
+WHERE    (2)      3. GROUP BY       collapse into groups
+GROUP BY (3)      4. HAVING         filter groups
+HAVING   (4)      5. SELECT         pick/compute columns
+ORDER BY (6)      6. ORDER BY, TOP  sort, cut</pre>
+    <div class="reveal-box"><button type="button">Why can't WHERE use a SELECT alias?</button>
+      <div class="answer"><p>WHERE runs at step 2; aliases are born at step 5. Same logic: aggregate filters need HAVING because WHERE runs before groups exist.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="sql-2">
+    <span class="eyebrow">Joins</span>
+    <h3>Inner filters, left preserves</h3>
+<pre><span class="c">-- ALL active users, flagging who has NO credential:</span>
+SELECT u.REF
+FROM USERS u
+LEFT JOIN CREDS c ON c.USER_ID = u.ID
+WHERE u.STATUS = <span class="s">'ACTIVE'</span>
+  AND c.ID IS NULL;        <span class="c">-- the "no match" detector</span></pre>
+    <ul>
+      <li>WHERE on the right table of a LEFT JOIN silently turns it INNER — right-table conditions go in <code>ON</code>.</li>
+      <li><b>Fan-out:</b> 1 user × 3 creds = 3 rows. Inflated counts? Count the base table alone first.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">"Which active users have no phone credential?" — which join, which trick?</button>
+      <div class="answer"><p>LEFT JOIN to creds (phone-type condition inside ON), then <code>WHERE c.ID IS NULL</code>. Absence is invisible to INNER joins; LEFT + IS NULL is how you query for what's <em>missing</em>.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="sql-3">
+    <span class="eyebrow">Traps</span>
+    <h3>NULL is a virus</h3>
+    <ul>
+      <li><code>col = NULL</code> is never true → <code>IS NULL</code></li>
+      <li><code>WHERE status &lt;&gt; 'REVOKED'</code> also drops NULL-status rows</li>
+      <li><code>NOT IN (subquery)</code> returns <em>nothing</em> if the subquery has one NULL → use <code>NOT EXISTS</code></li>
+      <li><code>COUNT(*)</code> counts rows; <code>COUNT(col)</code> counts non-nulls — different answers</li>
+    </ul>
+    <div class="reveal-box"><button type="button">A filter "mysteriously" loses rows. First suspect?</button>
+      <div class="answer"><p>NULLs — comparisons with NULL are unknown, and WHERE drops unknowns. Check what <code>WHERE col IS NULL</code> returns.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="sql-4">
+    <span class="eyebrow">Aggregation</span>
+    <h3>Group, then the conditional-count ace</h3>
+<pre>SELECT cl.NAME,
+       COUNT(*)                                              AS total,
+       SUM(CASE WHEN u.STATUS = <span class="s">'ACTIVE'</span> THEN 1 ELSE 0 END) AS active,
+       SUM(CASE WHEN u.STATUS = <span class="s">'LOCKED'</span> THEN 1 ELSE 0 END) AS locked
+FROM USERS u JOIN CLIENTS cl ON cl.ID = u.CLIENT_ID
+GROUP BY cl.NAME
+HAVING COUNT(*) &gt; 100;</pre>
+    <p>Multiple counts, one pass. WHERE filters rows before grouping (cheap); HAVING filters groups after.</p>
+  </div>
+
+  <div class="card" data-learn="sql-5">
+    <span class="eyebrow">Power move</span>
+    <h3>ROW_NUMBER: "latest X per Y"</h3>
+<pre>WITH ranked AS (
+    SELECT p.*, ROW_NUMBER() OVER (PARTITION BY p.USER_ID
+                                   ORDER BY p.ID DESC) AS rn
+    FROM PROOFING_XN p
+)
+SELECT * FROM ranked WHERE rn = 1;</pre>
+    <p>Window functions compute across rows <em>without collapsing them</em>. If you learn one advanced SQL move, make it this — it answers every "most recent status per user" triage question.</p>
+    <div class="reveal-box"><button type="button">Why not GROUP BY user with MAX(id)?</button>
+      <div class="answer"><p>GROUP BY collapses the row — you get the max id but lose that row's other columns without a second join back. ROW_NUMBER keeps whole rows and labels their rank.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="sql-6">
+    <span class="eyebrow">Craft</span>
+    <h3>Build queries incrementally (CTEs)</h3>
+<pre>WITH recent_fails AS (
+    SELECT * FROM EVENTS
+    WHERE TYPE = <span class="s">'authnFail'</span>
+      AND CREATE_TIME &gt;= DATEADD(HOUR, -24, GETDATE())
+)
+SELECT u.REF, COUNT(*) AS fails
+FROM recent_fails f JOIN USERS u ON u.REF = f.ACTOR
+GROUP BY u.REF ORDER BY fails DESC;</pre>
+    <p>Run the inner piece, eyeball rows, wrap the next layer, run again. Never write 40 lines and then debug. Name steps with CTEs so the query reads top-down like prose.</p>
+  </div>
+
+  <div class="card" data-learn="sql-7">
+    <span class="eyebrow">Performance</span>
+    <h3>Index instincts</h3>
+    <ul>
+      <li>An index is a sorted lookup: <code>WHERE indexed_col = x</code> → seek (fast). A function around the column (<code>LTRIM(col) = x</code>) or leading wildcard (<code>LIKE '%x'</code>) → scan (slow).</li>
+      <li>Giant audit/event tables: <b>always</b> time-range + TOP. An unbounded scan on a hot table is itself an incident.</li>
+      <li>Unsure of size? <code>COUNT(*)</code> before <code>SELECT *</code>.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">In Big-O terms, why does the unbounded audit query hurt prod?</button>
+      <div class="answer"><p>Full scan = O(n) over hundreds of millions of rows while holding I/O and locks. The indexed time-bounded version is O(log n + k). Big-O is why one query is an incident and the other is instant.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="sql-8">
+    <span class="eyebrow">Correctness</span>
+    <h3>Transactions & isolation (enough to reason)</h3>
+    <ul>
+      <li>A transaction makes several statements atomic: all commit or none do — the DB-side twin of <code>@Transactional</code>.</li>
+      <li>While a write transaction holds locks, other writers to the same rows <b>wait</b>. Long transactions + hot rows = timeouts.</li>
+      <li>Two services writing the same row aren't coordinated by Java — the database serializes them. That's the platform's real concurrency control.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Two requests increment the same fail-counter "simultaneously." Who prevents a lost update?</button>
+      <div class="answer"><p>The database — an atomic <code>UPDATE … SET cnt = cnt + 1</code> serializes on the row lock. Read-then-write in Java (read 3, write 4) can still lose updates; push the arithmetic into the UPDATE.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DSA ================= -->
+<section id="tab-dsa" hidden>
+  <h2>DSA — patterns, not memorized solutions</h2>
+  <p class="lede">You never "think of the answer." You walk small steps until the answer is forced. Same protocol every problem — that's what removes the freeze.</p>
+
+  <div class="card" data-learn="dsa-1">
+    <span class="eyebrow">The protocol</span>
+    <h3>7 steps, written down, every time</h3>
+    <ol>
+      <li><b>Restate</b> the problem in your own words — one sentence</li>
+      <li><b>Tiny example by hand</b> — 3–4 items, solve it with your eyes</li>
+      <li><b>Brute force out loud</b> — "check every pair" is valid; name its Big-O</li>
+      <li><b>Name the bottleneck</b> — "I keep re-searching what I've seen"</li>
+      <li><b>Match a pattern</b> — the bottleneck names it</li>
+      <li><b>Code the smallest piece first</b> — skeleton → structure → update rule → return</li>
+      <li><b>Trace with the step-2 example</b> before submitting</li>
+    </ol>
+    <p>Stuck at 20 min? Read the <em>approach</em>, never the code — finish yourself, re-solve in 3 days.</p>
+  </div>
+
+  <div class="card" data-learn="dsa-2">
+    <span class="eyebrow">Pattern triggers</span>
+    <h3>Bottleneck → pattern</h3>
+    <div class="tablewrap"><table>
+      <tr><th>You notice…</th><th>Reach for</th></tr>
+      <tr><td>"seen this before?" / counting / pairs</td><td>HashMap / HashSet</td></tr>
+      <tr><td>sorted input, squeeze from both ends</td><td>Two pointers</td></tr>
+      <tr><td>longest/shortest subarray with property</td><td>Sliding window</td></tr>
+      <tr><td>matching pairs, most-recent-first, undo</td><td>Stack</td></tr>
+      <tr><td>sorted + O(log n) / "min value that works"</td><td>Binary search</td></tr>
+      <tr><td>hierarchy, depth, level order</td><td>Tree DFS / BFS</td></tr>
+      <tr><td>grid, islands, dependencies</td><td>Graph DFS/BFS + visited</td></tr>
+      <tr><td>k largest / most frequent / streaming top-k</td><td>Heap</td></tr>
+      <tr><td>"number of ways", "min cost", repeated subproblems</td><td>DP = recursion + cache</td></tr>
+    </table></div>
+  </div>
+
+  <div class="card" data-learn="dsa-3">
+    <span class="eyebrow">Big-O</span>
+    <h3>How work grows</h3>
+    <div class="tablewrap"><table>
+      <tr><th>Big-O</th><th>Feel</th><th>Example</th></tr>
+      <tr><td>O(1)</td><td>instant</td><td>HashMap get</td></tr>
+      <tr><td>O(log n)</td><td>halving</td><td>binary search</td></tr>
+      <tr><td>O(n)</td><td>one pass</td><td>scan a list</td></tr>
+      <tr><td>O(n log n)</td><td>sort</td><td>Arrays.sort</td></tr>
+      <tr><td>O(n²)</td><td>all pairs</td><td>nested loops</td></tr>
+    </table></div>
+    <p>A HashMap turns "search inside a loop" (n²) into n. Sorting first often turns n² into n log n. Constraints are hints: n up to 10⁵ → you need n log n or better.</p>
+  </div>
+
+  <div class="card" data-learn="dsa-4">
+    <span class="eyebrow">Skeleton</span>
+    <h3>HashMap one-pass (Two Sum shape)</h3>
+<pre><span class="t">Map</span>&lt;Integer,Integer&gt; seen = <span class="k">new</span> <span class="t">HashMap</span>&lt;&gt;();  <span class="c">// value → index</span>
+<span class="k">for</span> (<span class="k">int</span> i = 0; i &lt; nums.length; i++) {
+    <span class="k">int</span> need = target - nums[i];
+    <span class="k">if</span> (seen.containsKey(need)) <span class="k">return new int</span>[]{seen.get(need), i};
+    seen.put(nums[i], i);   <span class="c">// check BEFORE store — why? [3,3] target 6</span>
+}</pre>
+  </div>
+
+  <div class="card" data-learn="dsa-5">
+    <span class="eyebrow">Skeleton</span>
+    <h3>Sliding window: grow, shrink, record</h3>
+<pre><span class="k">int</span> left = 0, best = 0;
+<span class="k">for</span> (<span class="k">int</span> right = 0; right &lt; n; right++) {
+    <span class="c">// GROW: bring s[right] into window state</span>
+    <span class="k">while</span> (<span class="c">/* window broke its rule */</span>) {
+        <span class="c">// SHRINK: remove s[left] from state</span>
+        left++;
+    }
+    best = <span class="t">Math</span>.max(best, right - left + 1);  <span class="c">// RECORD</span>
+}</pre>
+    <div class="reveal-box"><button type="button">Which platform mechanic is literally a sliding window?</button>
+      <div class="answer"><p>"N failures within M minutes locks the account" — a windowed count over an event stream. Fail counters and lock-until timestamps are its stored form.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="dsa-6">
+    <span class="eyebrow">Skeleton</span>
+    <h3>Binary search: halve the space</h3>
+<pre><span class="k">int</span> lo = 0, hi = arr.length - 1;
+<span class="k">while</span> (lo &lt;= hi) {
+    <span class="k">int</span> mid = lo + (hi - lo) / 2;      <span class="c">// overflow-safe</span>
+    <span class="k">if</span> (arr[mid] == target) <span class="k">return</span> mid;
+    <span class="k">if</span> (arr[mid] &lt; target) lo = mid + 1; <span class="k">else</span> hi = mid - 1;
+}
+<span class="k">return</span> -1;</pre>
+    <p>Works on anything <em>monotonic</em>, not just arrays: "smallest rate that finishes in time" — if rate X works, every rate above X works → binary search the answer.</p>
+  </div>
+
+  <div class="card" data-learn="dsa-7">
+    <span class="eyebrow">Skeleton</span>
+    <h3>Tree recursion: the leap of faith</h3>
+<pre><span class="k">int</span> maxDepth(<span class="t">TreeNode</span> n) {
+    <span class="k">if</span> (n == <span class="k">null</span>) <span class="k">return</span> 0;                 <span class="c">// base case FIRST</span>
+    <span class="k">return</span> 1 + <span class="t">Math</span>.max(maxDepth(n.left),     <span class="c">// TRUST the call</span>
+                        maxDepth(n.right));   <span class="c">// combine</span>
+}</pre>
+    <div class="reveal-box"><button type="button">Where do people blank on recursion, and what's the antidote?</button>
+      <div class="answer"><p>Simulating every nested call in their head — working memory overflows. Antidote: write the base case, then the recursive case <em>as if the call already works</em>. Verify on a 3-node tree only; induction does the rest.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="dsa-8">
+    <span class="eyebrow">The system</span>
+    <h3>The redo rule (where learning actually happens)</h3>
+    <p>Every solved problem goes on a redo list: re-solve from scratch at <b>+3 days</b> and <b>+3 weeks</b>. A problem isn't done until you've solved it cold twice. 50 problems solved three times beats 150 solved once — retrieval builds memory, exposure doesn't.</p>
+    <div class="reveal-box"><button type="button">You needed a hint today. What exactly do you schedule?</button>
+      <div class="answer"><p>The same problem, from a blank file, in 3 days — no hint allowed. If it needs a hint again, it repeats again. The metric that matters is "solved solo," not "problems seen."</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ARCHITECTURE ================= -->
+<section id="tab-arch" hidden>
+  <h2>Architecture — how ~20 services make one platform</h2>
+  <p class="lede">The senior difference isn't knowing more syntax — it's holding the system's shape in your head: what talks to what, sync or async, and where truth lives.</p>
+
+  <div class="card" data-learn="arch-1">
+    <span class="eyebrow">Shape</span>
+    <h3>Why microservices at all</h3>
+    <p>One service per business capability (auth, credentials, MFA, orgs, roles, email…), each independently deployable with its own release cadence. The costs are real too: network calls can fail, debugging spans log files, and consistency needs design (see saga). A monolith isn't "wrong" — it's a different trade. Your platform runs <em>both</em>: legacy monoliths and modern services, sharing databases.</p>
+    <div class="reveal-box"><button type="button">Name two things that get harder when a monolith becomes 20 services.</button>
+      <div class="answer"><p>(1) Debugging: one user action leaves traces in several services' logs — you correlate by IDs and timestamps. (2) Transactions: no single DB commit spans services — you need sagas/events and idempotency. In exchange: independent deploys, isolated failures, per-team ownership.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="arch-2">
+    <span class="eyebrow">Shape</span>
+    <h3>Every service, same skeleton</h3>
+<pre>gateway/LB ─► [filter: authn] ─► controller ─► service ─► repository ─► DB
+                                        │
+                                        └─► REST client ─► another service
+                                        └─► publish event ─► message bus</pre>
+    <p>Learn ONE service deeply and you've learned the reading order for all of them: find the controller, follow one endpoint down, note which tables and which outbound calls. A new service is a 1-hour read once you own the skeleton.</p>
+  </div>
+
+  <div class="card" data-learn="arch-3">
+    <span class="eyebrow">Communication</span>
+    <h3>Sync vs async — the fundamental fork</h3>
+    <div class="tablewrap"><table>
+      <tr><th></th><th>Synchronous (HTTP)</th><th>Asynchronous (message bus)</th></tr>
+      <tr><td>Caller</td><td>waits for the answer</td><td>fires and moves on</td></tr>
+      <tr><td>Failure</td><td>immediate error to caller</td><td>retry later, caller unaware</td></tr>
+      <tr><td>Use when</td><td>the answer is needed NOW (validate an OTP)</td><td>work can happen later (send email, sync a mirror)</td></tr>
+      <tr><td>Debugging</td><td>one request trace</td><td>producer log + queue + consumer log</td></tr>
+    </table></div>
+    <div class="reveal-box"><button type="button">"User never got the enrollment email." Sketch the async triage path.</button>
+      <div class="answer"><p>Three hops, in order: (1) did the producer write/publish the event? (event table / producer log) (2) did the consumer receive it? (handler log) (3) did the email service render and send? (its log / provider response). The failure is always at exactly one hop.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="arch-4">
+    <span class="eyebrow">Communication</span>
+    <h3>Events, at-least-once delivery, idempotency</h3>
+    <p>Message buses promise <b>at-least-once</b> delivery — meaning: sometimes twice. Consumers must be <b>idempotent</b>: processing the same message twice must leave the same result as once.</p>
+    <ul>
+      <li>Techniques: check-before-insert, unique constraints on a message/event ID, "set status = X" (naturally idempotent) instead of "increment" (not).</li>
+      <li>Every state change also writes an <b>audit event row</b> — that trail is your timeline in every investigation.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Why is "INSERT a row per message" dangerous and "UPSERT by message id" safe?</button>
+      <div class="answer"><p>A redelivered message inserts a duplicate row (double email, double credential). Upsert/unique-key makes the second delivery a no-op. Design every consumer assuming duplicates WILL arrive.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="arch-5">
+    <span class="eyebrow">Consistency</span>
+    <h3>The saga pattern: transactions across services</h3>
+    <p>No single DB transaction can span services. A <b>saga</b> breaks one business operation ("provision this user") into steps, records progress in a saga table, and defines what to do when step 3 of 5 fails: retry it, or run <b>compensations</b> that undo steps 1–2.</p>
+    <div class="reveal-box"><button type="button">What does a row stuck mid-saga tell you in triage?</button>
+      <div class="answer"><p>Exactly which step failed and that later steps never ran — the saga table is a checkpoint log. The fix is usually: resolve the failing step's cause, then resume or compensate. Never hand-edit the end state and leave the saga inconsistent.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="arch-6">
+    <span class="eyebrow">Consistency</span>
+    <h3>State machines everywhere</h3>
+<pre>credential:  CREATED ─► PENDING_ACTIVATION ─► ACTIVE ─► SUSPENDED ⇄ ACTIVE
+                              │                              │
+                              ▼ (stuck = bug class)          ▼
+                           REVOKED ◄─────────────────────────┘
+
+proofing:    START ─► TERMS ─► CHECKS ─► [type-specific steps] ─► ACTIVATE ─► DONE</pre>
+    <p>Every arrow = a guarded method + an audit event + often an async message. Most "weird state" tickets are an arrow that half-completed: the status column and the audit trail disagree about which arrow fired.</p>
+    <div class="reveal-box"><button type="button">Status says PENDING but the audit trail shows an activation event. What happened, mechanically?</button>
+      <div class="answer"><p>The transition wasn't atomic: event written, status write failed (or vice versa) — two writes that needed one transaction. Find the code path where they're separated; that's the bug.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="arch-7">
+    <span class="eyebrow">Evolution</span>
+    <h3>Legacy + modern, side by side (the strangler pattern)</h3>
+    <p>You don't rewrite a 20-year platform; you grow a new system <em>around</em> it. The pattern: new services wrap the old engine's libraries, both write the <b>same database</b>, and a per-record <b>version flag</b> decides which code path owns each record.</p>
+    <ul>
+      <li>First triage question for any record: <b>which version owns it?</b> The flag tells you which codebase to read.</li>
+      <li>Bugs love the seam: flows where a record starts in the old system and finishes in the new one.</li>
+      <li>Shared DB means the schema serves two masters — changes must not break either.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Why does "same feature, different behavior for two users" scream version-flag?</button>
+      <div class="answer"><p>Two code paths implement the feature; the users' records carry different version flags, so each ran a different implementation. Confirm the flag first, then read the RIGHT codebase — hours saved.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="arch-8">
+    <span class="eyebrow">Evolution</span>
+    <h3>Multi-tenancy: one system, many clients</h3>
+    <p>Every client (tenant) shares the code but gets partitioned data and per-client config. Two iron rules follow:</p>
+    <ul>
+      <li><b>Every query carries the client ID.</b> Forgetting it returns another tenant's data — a correctness bug at best, a breach at worst.</li>
+      <li><b>Behavior differences come from per-client config</b>, not per-client code. New client ≈ configuration, not development.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">The same user ref exists twice in the accounts table. Bug?</button>
+      <div class="answer"><p>Probably not — uniqueness is per client. (ref + client) is the real key. This is why triage queries that skip the client filter find "impossible" duplicates.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="arch-9">
+    <span class="eyebrow">The two stories</span>
+    <h3>Life of a request / life of a credential</h3>
+<pre>REQUEST:  device ─► gateway ─► [authn filter] ─► controller ─► service
+             └─ 401 here means filter, not controller       │
+                                        repository ──► DB ◄──┘
+                                        events ──► bus ──► consumers (async)
+
+CREDENTIAL:  add ─► verify possession ─► ACTIVE ─► used to sign ─► retired
+             each arrow: guard + audit row + maybe a message</pre>
+    <p>Every ticket you'll ever get lives on one of these two lines. Locating it on the line — which hop, which arrow — is 80% of the diagnosis.</p>
+  </div>
+</section>
+
+<!-- ================= IDENTITY ================= -->
+<section id="tab-idsec" hidden>
+  <h2>Identity &amp; security — your business domain</h2>
+  <p class="lede">This is what makes you a domain expert, not just a Java developer. All of it is public-standards knowledge (NIST, RFCs, FIDO) — the exact standards your platform implements.</p>
+
+  <div class="card" data-learn="id-1">
+    <span class="eyebrow">Foundations</span>
+    <h3>Authentication vs authorization</h3>
+    <p><b>AuthN</b>: who are you? (password, OTP, passkey). <b>AuthZ</b>: what may you do? (roles, permissions, subscriptions). They fail differently: 401 = we don't know who you are; 403 = we know exactly who you are, and no.</p>
+    <div class="reveal-box"><button type="button">A user logs in fine but can't see an application tile. AuthN or authZ problem?</button>
+      <div class="answer"><p>AuthZ — identity succeeded; entitlement didn't. Look at roles/subscriptions/permissions, not credentials. Classifying the ticket this way instantly halves the search space.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="id-2">
+    <span class="eyebrow">Foundations</span>
+    <h3>How passwords are stored (never stored)</h3>
+    <p>Systems store a <b>salted hash</b>, not the password: <code>hash(salt + password)</code>. Login re-computes and compares. Hashes are one-way; the salt (random, per-user) defeats precomputed rainbow tables; slow algorithms (bcrypt/PBKDF2/argon2) make brute force expensive.</p>
+    <div class="reveal-box"><button type="button">Why can't support "look up" a user's password, ever?</button>
+      <div class="answer"><p>It doesn't exist anywhere — only its hash does, and hashing is one-way by design. That's why every flow is reset-based, never recover-based.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="id-3">
+    <span class="eyebrow">MFA</span>
+    <h3>The three factors</h3>
+    <p>Something you <b>know</b> (password/PIN) · something you <b>have</b> (token, phone, passkey device) · something you <b>are</b> (biometric). MFA = at least two <em>different</em> factors. Password + security question = still one factor (two knows).</p>
+    <div class="reveal-box"><button type="button">Regulated e-prescribing requires two-factor signing. Password + emailed code — does it qualify? Think it through.</button>
+      <div class="answer"><p>Weakly at best: email is protected by… often another password, so the "have" is questionable. Regulations for controlled-substance prescribing require a hard token, TOTP app, or biometric as the second factor — which is exactly why your platform exists.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="id-4">
+    <span class="eyebrow">MFA</span>
+    <h3>OTP mechanics: HOTP vs TOTP</h3>
+    <p>Both sides share a <b>secret key</b>. The device computes <code>code = truncate(HMAC(secret, counter))</code>.</p>
+    <ul>
+      <li><b>HOTP</b> (RFC 4226): counter = number of uses. Devices can drift ahead of the server → the server checks a look-ahead window; too far apart needs a <b>resync</b> (enter two consecutive codes).</li>
+      <li><b>TOTP</b> (RFC 6238): counter = current time ÷ 30s. Drift = clock skew; servers accept ± a step or two.</li>
+      <li>Hardware tokens and authenticator apps are the same math in different packaging.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">A hardware token's codes suddenly all fail, for one user only. Two classic causes?</button>
+      <div class="answer"><p>(1) Counter/clock drift beyond the window → needs resync. (2) Server-side lockout from accumulated failures → the failures and lock state, not the token, block it. The audit trail distinguishes them: <em>wrong code</em> events vs <em>locked</em> events.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="id-5">
+    <span class="eyebrow">MFA</span>
+    <h3>Phone (OOB) and push — convenience with caveats</h3>
+    <ul>
+      <li><b>OOB</b> (out-of-band): server sends a code via SMS/voice — possession of the phone <em>number</em>. Weakness: SIM-swap and forwarding attacks; why high-assurance flows restrict it.</li>
+      <li><b>Push approval</b>: server sends a signed challenge to an enrolled app; user taps approve; app signs back. Stronger than SMS (device-bound), phishable via "approve fatigue".</li>
+      <li>Both are <em>staged transactions</em>: request created → sent → user acts → server completes or expires it. Stuck = find which stage.</li>
+    </ul>
+  </div>
+
+  <div class="card" data-learn="id-6">
+    <span class="eyebrow">MFA</span>
+    <h3>Passkeys / FIDO2 — why they're the endgame</h3>
+    <p>Enrollment creates a <b>key pair on the device</b>: private key never leaves (secured by biometric/PIN); server stores only the public key. Login: server sends a random challenge → device signs it → server verifies with the public key.</p>
+    <ul>
+      <li><b>Phishing-resistant</b>: the signature is bound to the site's origin — a fake site gets a signature that's useless for the real one.</li>
+      <li>Nothing secret is stored server-side → nothing to breach and replay.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Why can't a passkey be phished the way an OTP can?</button>
+      <div class="answer"><p>An OTP is a bearer secret — whoever holds the 6 digits can use them anywhere. A passkey signature is origin-bound and single-challenge: it only answers this site's random challenge, so relaying it elsewhere proves nothing.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="id-7">
+    <span class="eyebrow">Signing</span>
+    <h3>PKI &amp; digital signatures — how document signing works</h3>
+<pre>document ──hash──► digest ──sign with PRIVATE key──► signature
+verify:  recompute digest + check signature with PUBLIC key (from cert)
+cert = "this public key belongs to Dr. X" — vouched by a CA chain</pre>
+    <ul>
+      <li>Sign the <b>digest</b>, not the document — fast, and the doc itself never needs to leave the client.</li>
+      <li>Any change to the document changes the digest → the signature no longer verifies. That's integrity.</li>
+      <li>Private key on the signer's side only → non-repudiation: only they could have signed.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Why does an e-prescription flow send Exostar a <em>digest</em> instead of the prescription?</button>
+      <div class="answer"><p>Privacy and efficiency: the platform can bind a signature to the exact document without ever seeing patient data — and the signature still proves integrity, because any change to the prescription would change its digest.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="id-8">
+    <span class="eyebrow">Federation</span>
+    <h3>SSO: SAML, OIDC, and trust</h3>
+    <p>Federation = one system (<b>IdP</b>, identity provider) vouches for users to others (<b>SP</b>, service providers). The user authenticates once; the IdP hands the SP a signed assertion (SAML XML) or signed token (OIDC/JWT). The SP trusts the <em>signature</em>, not the user.</p>
+    <ul>
+      <li>SAML: enterprise-era XML assertions via browser redirects. OIDC: JSON/JWT on OAuth2 rails. Same trust shape.</li>
+      <li>Debug SSO by asking: which side minted the assertion, what claims are in it, did the signature/audience/clock checks pass?</li>
+    </ul>
+    <div class="reveal-box"><button type="button">SSO login loops endlessly between two sites. What's the usual shape of the bug?</button>
+      <div class="answer"><p>The SP doesn't accept the assertion (bad audience/clock skew/missing claim) and silently redirects back to the IdP, which sees a valid session and immediately returns — loop. Read the assertion's claims first, not the login form.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="id-9">
+    <span class="eyebrow">Proofing</span>
+    <h3>Identity proofing — IAL levels (NIST 800-63A)</h3>
+    <p>Authentication proves you own the credential. <b>Proofing</b> proves you are a real, specific person <em>before</em> issuing it.</p>
+    <ul>
+      <li><b>IAL1</b>: self-asserted (you say you're Bob). <b>IAL2</b>: evidence-verified (documents, records, or supervised remote check). <b>IAL3</b>: in-person, strongest.</li>
+      <li>Methods you'll recognize: KBA (knowledge questions from credit-bureau records), document + selfie upload, live webcam review by a trained agent, mailed one-time codes to an address of record.</li>
+      <li>Proofing is a multi-step <em>transaction</em> with its own state machine — resumable, expirable, reviewable. High-value credentials (e-prescribing) require completed proofing before activation.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Why is signing blocked while proofing is in progress?</button>
+      <div class="answer"><p>The signature legally asserts "a proofed, verified person signed this." Mid-proofing, that claim isn't true yet — so the gate stays closed until the process completes. Compliance logic expressed as a state guard.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="id-10">
+    <span class="eyebrow">Defense</span>
+    <h3>Lockouts, fail counters, and unlock flows</h3>
+    <p>Brute-force defense: count consecutive failures per user/credential; past a threshold, lock until a timestamp or until admin action. Success resets the counter.</p>
+    <ul>
+      <li>Triage reads: <em>fail count</em> (how close to lock), <em>lock-until</em> (when it clears), and the audit trail (what failed, when, from where).</li>
+      <li>Sibling systems can mirror lock state to each other (a sync daemon) — "locked in one place, fine in the other" means the mirror lagged or failed.</li>
+      <li>Design subtlety: increment must be atomic (see the SQL transactions card) or concurrent failures under-count.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= CRAFT ================= -->
+<section id="tab-craft" hidden>
+  <h2>Code craft — reading, debugging, thinking</h2>
+  <p class="lede">The skills seniors actually run on. Every one is trainable, and every one has a protocol — no talent required, only reps.</p>
+
+  <div class="card" data-learn="craft-1">
+    <span class="eyebrow">Reading</span>
+    <h3>Why you blank at code (and the fix)</h3>
+    <p>Reading line-by-line tries to hold the whole file in working memory — it overflows and the mind whites out. Seniors read in <b>chunks</b> ("that's a factory dispatch", "that's validate-then-persist") and always <b>with a question</b>. Chunks come from reps; questions come from habit.</p>
+    <ul>
+      <li>Before opening any file, write ONE question it must answer.</li>
+      <li>Find the answer, write <code>file:line → answer</code>, close the file.</li>
+      <li>Blanking anyway? Shrink scope: one method → one statement, said out loud.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">"What does this class do?" — why is that a bad reading question?</button>
+      <div class="answer"><p>It has no stopping condition — you'll read everything and retain nothing. "Where does the status get set to ACTIVE?" is answerable, checkable, and done in minutes. Good questions have findable answers.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="craft-2">
+    <span class="eyebrow">Reading</span>
+    <h3>The two-pass method</h3>
+    <ol>
+      <li><b>Pass 1 — happy path only.</b> Skip every <code>if (error)</code> branch. What happens when everything works?</li>
+      <li><b>Pass 2 — error branches only.</b> Half of L3 knowledge lives here: what can fail, what each failure returns, what gets logged.</li>
+    </ol>
+    <p>Then sketch the call chain on paper: <code>Controller.method → Service.method → Helper.method → table</code>. The sketch is the deliverable — if you can't draw it, you haven't read it yet.</p>
+  </div>
+
+  <div class="card" data-learn="craft-3">
+    <span class="eyebrow">Debugging</span>
+    <h3>Stack traces: the 4-step protocol</h3>
+<pre>Exception in thread "http-9067-3": WrapperException: request failed
+  at framework.Something...          ← noise
+Caused by: java.lang.NullPointerException      ← ★ LAST "Caused by"
+  at com.yourco.cred.HwTokenHelper.validate(HwTokenHelper.java:142)  ← ★ your first line
+  at com.yourco.cred.CredService.add(CredService.java:88)            ← the call path, as a story</pre>
+    <ol>
+      <li>Jump to the <b>last</b> <code>Caused by:</code> — the root exception.</li>
+      <li>Find the <b>first line in your own package</b> — where it blew up.</li>
+      <li>Open that file at that line: what could be null/invalid here?</li>
+      <li>The frames below are the call path — read them like a story to see how you got there.</li>
+    </ol>
+  </div>
+
+  <div class="card" data-learn="craft-4">
+    <span class="eyebrow">Debugging</span>
+    <h3>The triage ladder (same shape as the DSA protocol)</h3>
+    <ol>
+      <li><b>Restate</b>: what exactly failed, for whom, since when?</li>
+      <li><b>Tiny example</b>: one user, one timestamp, one request</li>
+      <li><b>Timeline</b>: audit/event rows around that moment</li>
+      <li><b>Code</b>: open the one method that writes those events — with one question</li>
+      <li><b>State</b>: does the DB row agree with what the code assumes?</li>
+      <li><b>Blast radius</b>: count — one user or thousands?</li>
+    </ol>
+    <p>Restate → small example → trace → pattern. Debugging prod and solving LeetCode are the same skill in different clothes. Every rep trains both.</p>
+  </div>
+
+  <div class="card" data-learn="craft-5">
+    <span class="eyebrow">Thinking</span>
+    <h3>The senior checklist (run it on every change)</h3>
+    <ul>
+      <li><b>Nulls:</b> which of my inputs can be null/empty/absent, and what happens then?</li>
+      <li><b>Concurrency:</b> two requests hit this at once — what breaks?</li>
+      <li><b>Duplicates:</b> this message/request arrives twice — is the result the same?</li>
+      <li><b>Time:</b> timezone? clock skew? what if the job runs at midnight/DST?</li>
+      <li><b>Blast radius:</b> if I'm wrong, who is affected and how do we know?</li>
+      <li><b>Rollback:</b> how do we undo this — code revert, config flip, data fix?</li>
+      <li><b>Observability:</b> when it misbehaves at 2am, what will the logs show?</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Which two checklist items catch the most production bugs in an event-driven MFA platform?</button>
+      <div class="answer"><p>Duplicates (at-least-once delivery guarantees them) and concurrency (fail counters, status transitions, sync daemons all race). Nulls are third — DB columns are nullable in ways code forgets.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="craft-6">
+    <span class="eyebrow">Thinking</span>
+    <h3>Reading other people's PRs (fastest senior-maker there is)</h3>
+    <ol>
+      <li>Read the ticket first — what was <em>supposed</em> to change?</li>
+      <li>Find the one file that carries the real change; the rest is ripple.</li>
+      <li>Ask the checklist questions (nulls, concurrency, duplicates) of the new code.</li>
+      <li>Write one genuine question as a comment. Asking beats silence — and beats fake approval.</li>
+    </ol>
+    <p>You learn more from 20 minutes in a teammate's PR than from an hour of tutorials: it's real code, real constraints, and the review discussion shows you how seniors think.</p>
+  </div>
+
+  <div class="card" data-learn="craft-7">
+    <span class="eyebrow">Habit</span>
+    <h3>The learning loop that makes it stick</h3>
+    <ul>
+      <li><b>Type, never paste.</b> Pasting is reading with extra steps.</li>
+      <li><b>Recall, never reread.</b> 24h after learning X, write it from a blank page. Failing the recall IS the study — that's when memory forms.</li>
+      <li><b>Connect within 48h.</b> Every concept gets found in real code at work within two days, or it evaporates.</li>
+      <li><b>Missed days don't exist.</b> Never catch up, never restart — just do today.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= DRILL (flashcards + quiz) ================= -->
+<section id="tab-cards" hidden>
+  <h2>Drill — recall beats rereading</h2>
+  <p class="lede">Flashcards for daily recall; the quiz for a weekly checkpoint. Answer out loud <b>before</b> flipping — progress saves on this device.</p>
+
+  <div class="deckmeta"><span>Card <b id="cardPos">1</b> / <span id="cardTotal">0</span></span><span id="knownCount"></span></div>
+  <div class="deck" id="deck" aria-live="polite">
+    <span class="topic" id="cardTopic"></span>
+    <div class="q" id="cardQ"></div>
+    <div class="a" id="cardA"></div>
+    <div class="deckbar">
+      <button class="btn primary" id="flipBtn" type="button">Reveal</button>
+      <button class="btn good" id="gotBtn" type="button" disabled>Got it</button>
+      <button class="btn" id="againBtn" type="button" disabled>Again</button>
+    </div>
+  </div>
+  <div class="deckbar" style="margin-top:12px">
+    <button class="btn" id="shuffleBtn" type="button">Shuffle</button>
+    <button class="btn" id="resetBtn" type="button">Reset deck</button>
+  </div>
+
+  <h2 style="margin-top:34px">Quiz — 10 random questions</h2>
+  <p class="lede">Pick an answer, get the why. Best score is saved to your Path.</p>
+  <div class="card" id="quizBox">
+    <span class="eyebrow" id="quizMeta">Question</span>
+    <h3 id="quizQ" style="padding-right:0"></h3>
+    <div id="quizOpts"></div>
+    <div class="quiz-exp" id="quizExp"></div>
+    <div class="deckbar">
+      <button class="btn primary" id="quizNext" type="button" disabled>Next</button>
+      <button class="btn" id="quizRestart" type="button">Restart quiz</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<button class="btn themebtn" id="themeBtn" type="button" aria-label="Toggle theme">◐ Theme</button>
+<footer>Personal study notes. All examples are simplified teaching mirrors of public patterns and standards — not production source.</footer>
+
+<script>
+// ---------- tabs ----------
+const tabs = document.querySelectorAll('nav [role=tab]');
+tabs.forEach(t => t.addEventListener('click', () => {
+  tabs.forEach(x => x.setAttribute('aria-selected', x === t ? 'true' : 'false'));
+  document.querySelectorAll('main > section').forEach(s => s.hidden = (s.id !== 'tab-' + t.dataset.tab));
+  window.scrollTo({top: 0});
+  if (t.dataset.tab === 'path') renderPath();
+}));
+
+// ---------- reveal boxes ----------
+document.querySelectorAll('.reveal-box > button').forEach(b =>
+  b.addEventListener('click', () => b.parentElement.classList.toggle('open')));
+
+// ---------- theme ----------
+const root = document.documentElement;
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const dark = root.dataset.theme === 'dark' ||
+    (!root.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+  root.dataset.theme = dark ? 'light' : 'dark';
+  localStorage.setItem('cc-theme', root.dataset.theme);
+});
+const savedTheme = localStorage.getItem('cc-theme');
+if (savedTheme) root.dataset.theme = savedTheme;
+
+// ---------- learned toggles ----------
+const TOPICS = {java:'Java', spring:'Spring', sql:'SQL', dsa:'DSA', arch:'Architecture', id:'Identity', craft:'Code Craft'};
+let learned = new Set(JSON.parse(localStorage.getItem('cc-learned') || '[]'));
+document.querySelectorAll('.card[data-learn]').forEach(card => {
+  const id = card.dataset.learn;
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'learnbtn';
+  const paint = () => { const on = learned.has(id); b.classList.toggle('on', on); b.textContent = on ? '✓ Learned' : 'Learned?'; };
+  paint();
+  b.addEventListener('click', () => {
+    learned.has(id) ? learned.delete(id) : learned.add(id);
+    localStorage.setItem('cc-learned', JSON.stringify([...learned]));
+    paint();
+  });
+  card.appendChild(b);
+});
+
+// ---------- streak ----------
+(function(){
+  const today = new Date().toISOString().slice(0,10);
+  let s = JSON.parse(localStorage.getItem('cc-streak') || '{"last":"","n":0}');
+  if (s.last !== today) {
+    const y = new Date(Date.now() - 864e5).toISOString().slice(0,10);
+    s.n = (s.last === y) ? s.n + 1 : 1;
+    s.last = today;
+    localStorage.setItem('cc-streak', JSON.stringify(s));
+  }
+})();
+
+// ---------- milestones ----------
+const MILES = [
+  "Practice app runs locally (hello, port 8080)",
+  "Solved Two Sum completely solo",
+  "Finished LeetCode Round 1 (7 problems + redos)",
+  "Java tab: every card marked Learned",
+  "Wrote a working class (store + state machine) from a blank file, no notes",
+  "SQL tab learned + wrote 3 triage queries from memory",
+  "Spring tab learned + built controller→service→repository endpoints",
+  "Mini-service talks to a real database, transactionally",
+  "Architecture + Identity tabs learned",
+  "Traced one real endpoint at work end-to-end (sketch on paper)",
+  "Re-derived a closed ticket's root cause solo, then compared to the RCA",
+  "First code-fix PR opened, reviewed, merged"
+];
+let miles = new Set(JSON.parse(localStorage.getItem('cc-miles') || '[]'));
+const milesBox = document.getElementById('milestones');
+MILES.forEach((m, i) => {
+  const l = document.createElement('label');
+  const c = document.createElement('input'); c.type = 'checkbox'; c.checked = miles.has(i);
+  const s = document.createElement('span'); s.textContent = (i+1) + '. ' + m;
+  if (c.checked) s.className = 'done';
+  c.addEventListener('change', () => {
+    c.checked ? miles.add(i) : miles.delete(i);
+    s.className = c.checked ? 'done' : '';
+    localStorage.setItem('cc-miles', JSON.stringify([...miles]));
+    renderPath();
+  });
+  l.append(c, s); milesBox.appendChild(l);
+});
+
+// ---------- path dashboard ----------
+function renderPath(){
+  const all = document.querySelectorAll('.card[data-learn]');
+  const total = all.length, done = [...all].filter(c => learned.has(c.dataset.learn)).length;
+  document.getElementById('statLearned').textContent = done + '/' + total;
+  document.getElementById('statLearnedBar').style.width = (total ? 100*done/total : 0) + '%';
+  const s = JSON.parse(localStorage.getItem('cc-streak') || '{"n":0}');
+  document.getElementById('statStreak').textContent = s.n;
+  const known = JSON.parse(localStorage.getItem('cc-known') || '[]');
+  document.getElementById('statCards').textContent = known.length + '/' + CARDS.length;
+  document.getElementById('statQuiz').textContent = localStorage.getItem('cc-quizbest') ? localStorage.getItem('cc-quizbest') + '/10' : '–';
+  const bars = document.getElementById('topicBars'); bars.innerHTML = '';
+  Object.entries(TOPICS).forEach(([pfx, name]) => {
+    const cards = [...all].filter(c => c.dataset.learn.startsWith(pfx + '-'));
+    const d = cards.filter(c => learned.has(c.dataset.learn)).length;
+    const row = document.createElement('div'); row.className = 'topicline';
+    row.innerHTML = '<span class="name">' + name + '</span><div class="bar"><i style="width:' +
+      (cards.length ? 100*d/cards.length : 0) + '%"></i></div><span class="pct">' + d + ' / ' + cards.length + '</span>';
+    bars.appendChild(row);
+  });
+}
+
+// ---------- flashcards ----------
+const CARDS = [
+ ["Java","Two variables point at the same ArrayList. One adds an item. What does the other see, and why?","The new item — both are references to the same heap object. Assignment copies the reference, never the object."],
+ ["Java","== vs .equals() for Strings?","== compares identity (same object); .equals() compares content. Always .equals() for objects; == for primitives and enums."],
+ ["Java","Why write \"ACTIVE\".equals(status), literal first?","If status is null it returns false instead of throwing a NullPointerException."],
+ ["Java","The equals/hashCode contract — and what breaks without it?","Equal objects must share a hashCode. Break it and HashMap/HashSet lose your keys: put succeeds, get returns null."],
+ ["Java","Why are local variables automatically thread-safe but fields aren't?","Locals live in each thread's own stack frame; fields live on the shared heap inside the singleton every request thread sees."],
+ ["Java","Why are immutable objects automatically thread-safe?","Races are two threads seeing a value mid-change. No change, no 'mid' — nothing to protect."],
+ ["Java","What does computeIfAbsent(key, k -> new ArrayList<>()) do?","Returns the value for key, creating+storing it first if missing. The one-line group-by idiom."],
+ ["Java","Checked vs unchecked exceptions — when is each right?","Checked: expected failures callers must handle. Unchecked: bugs and violated assumptions."],
+ ["Java","What's wrong with catch (Exception e) { log(e.getMessage()); }?","Swallows the stack trace and cause chain. Log the exception object or wrap-and-rethrow with context."],
+ ["Java","The factory pattern in one sentence.","A method that picks which implementation of an interface to hand you, so callers stay type-agnostic."],
+ ["Java","Big-O: HashMap.get, HashSet.contains, ArrayList.contains?","O(1), O(1), O(n) — the difference that kills nested-loop searches."],
+ ["Java","When does a stream pipeline actually execute?","At the terminal operation (toList, count, findFirst). filter/map only describe the recipe."],
+ ["Java","What does returning Optional<Cred> tell every caller?","Absence is a normal outcome you must handle — at compile time, not as a surprise NPE."],
+ ["Spring","The 4 things the container does at startup?","Scan for annotated classes → create one bean each → inject constructor dependencies → auto-configure from the classpath."],
+ ["Spring","Order for one request: filters, DispatcherServlet, Jackson, controller?","Thread → filter chain (auth!) → DispatcherServlet routes → Jackson binds → controller → service → repo → Jackson response."],
+ ["Spring","Bad JWT arrives — does the controller run?","No. The filter rejects with 401 before routing. Auth bugs live in filters/config."],
+ ["Spring","@PathVariable vs @RequestParam vs @RequestBody?","URL segment vs query string vs JSON body bound to an object."],
+ ["Spring","What does @Transactional guarantee?","All writes in the method commit together or roll back together (on unchecked exceptions by default)."],
+ ["Spring","The @Transactional same-class gotcha?","this.method() bypasses the Spring proxy — no transaction starts. Only external calls are wrapped."],
+ ["Spring","Why DTOs separate from entities?","API contract and DB schema change for different reasons; the service mapping absorbs change."],
+ ["Spring","You changed a property; behavior didn't change until restart. Why?","The value was injected into the bean at startup and frozen there. No refresh mechanism = restart required."],
+ ["Spring","What SQL does findByEmailOrderByIdDesc generate?","SELECT … WHERE email = ? ORDER BY id DESC — the method name IS the query."],
+ ["SQL","Recite the logical execution order.","FROM/JOIN → WHERE → GROUP BY → HAVING → SELECT → ORDER BY/TOP."],
+ ["SQL","Why can't WHERE see a SELECT alias?","WHERE runs at step 2; aliases are created at SELECT, step 5."],
+ ["SQL","Find users with NO credential — the pattern?","LEFT JOIN creds, WHERE creds.ID IS NULL. Left preserves; IS NULL detects absence."],
+ ["SQL","Why does WHERE status <> 'REVOKED' lose rows?","NULL-status rows: NULL comparisons are unknown and WHERE drops unknowns."],
+ ["SQL","'Latest transaction per user' — which tool?","ROW_NUMBER() OVER (PARTITION BY user ORDER BY id DESC), keep rn = 1."],
+ ["SQL","What kills an index in a WHERE clause?","A function wrapped around the column, or a leading-wildcard LIKE — both force scans."],
+ ["SQL","COUNT(*) vs COUNT(col)?","Rows vs non-NULL values — different answers when col has NULLs."],
+ ["SQL","Two concurrent 'cnt = cnt + 1' updates — why is the UPDATE form safe and read-then-write not?","The atomic UPDATE serializes on the row lock. Java-side read-then-write can interleave and lose one increment."],
+ ["DSA","First two protocol steps, before any code?","Restate in your own words; solve a tiny 3–4 item example by hand."],
+ ["DSA","Re-searching data inside a loop — pattern?","HashMap/HashSet: O(1) 'seen it?' turns n² into n."],
+ ["DSA","'Longest substring with property X' — pattern and its 3 beats?","Sliding window: grow right, shrink left while invalid, record best."],
+ ["DSA","Recursion without tracing every call — how?","Base case first, then write the recursive case trusting the call (leap of faith). Verify on a 3-node example."],
+ ["DSA","Stuck at 20 minutes — what now?","Read the approach only, never the code; finish yourself; redo from scratch in 3 days."],
+ ["DSA","Check-before-store in Two Sum — why?","[3,3] target 6: store-first lets index 0 'find itself'. Check first = pair only with earlier elements."],
+ ["Architecture","At-least-once delivery means consumers must be…?","Idempotent — processing the same message twice must equal processing it once (upserts, unique keys, absolute sets not increments)."],
+ ["Architecture","Why sagas instead of one DB transaction?","The operation spans services and databases — no single commit exists, so steps + compensation + a progress table replace it."],
+ ["Architecture","Status column and audit trail disagree. Mechanically, what happened?","Two writes that needed one transaction were separated — one landed, the other didn't. Find where they're split."],
+ ["Architecture","Same feature, different behavior for two users — first thing to check?","The record's version flag: two code paths implement the feature; the flag says which one ran. Then read the RIGHT codebase."],
+ ["Architecture","Why must every tenant query carry the client ID?","Data is partitioned per client; without it you read (or count) other tenants' records — 'impossible duplicates' and worse."],
+ ["Identity","401 vs 403?","401: we don't know who you are (authN failed). 403: we know exactly who you are — and no (authZ denied)."],
+ ["Identity","Why can't support ever look up a password?","Only a salted one-way hash is stored. The password exists nowhere. Reset, never recover."],
+ ["Identity","TOTP vs HOTP — what advances the counter?","TOTP: the clock (30s steps, skew tolerated). HOTP: usage count (drift needs resync)."],
+ ["Identity","Why is a passkey phishing-resistant when an OTP isn't?","OTP is a bearer secret usable anywhere. A passkey signs an origin-bound challenge — useless to relay elsewhere; private key never leaves the device."],
+ ["Identity","Digital signature in one line?","Hash the document, sign the digest with the private key; anyone verifies with the public key from the cert. Change one byte → verification fails."],
+ ["Identity","Why is signing blocked during identity proofing?","The signature asserts 'a verified person signed this' — not yet true mid-proofing. Compliance as a state guard."],
+ ["Craft","A good code-reading question has what property?","A findable, checkable answer with a stopping condition — 'where is status set to ACTIVE?', never 'what does this class do?'"],
+ ["Craft","Stack trace protocol, steps 1–2?","Jump to the LAST 'Caused by:'; find the first line in your own package. That's where it broke."],
+ ["Craft","The two checklist items that catch the most bugs in an event-driven MFA platform?","Duplicates (at-least-once guarantees them) and concurrency (counters, transitions, sync daemons all race)."],
+ ["Craft","Why does recall beat rereading?","Memory forms on retrieval effort, not exposure. Failing a blank-page attempt then checking IS the study."]
+];
+
+let order = CARDS.map((_, i) => i);
+let pos = 0;
+let known = new Set(JSON.parse(localStorage.getItem('cc-known') || '[]'));
+const deck = document.getElementById('deck');
+const elTopic = document.getElementById('cardTopic'), elQ = document.getElementById('cardQ'), elA = document.getElementById('cardA');
+const flipBtn = document.getElementById('flipBtn'), gotBtn = document.getElementById('gotBtn'), againBtn = document.getElementById('againBtn');
+function activeOrder(){ const a = order.filter(i => !known.has(i)); return a.length ? a : order; }
+function renderCard(){
+  const act = activeOrder();
+  if (pos >= act.length) pos = 0;
+  const c = CARDS[act[pos]];
+  deck.classList.remove('flipped');
+  elTopic.textContent = c[0]; elQ.textContent = c[1]; elA.textContent = c[2];
+  flipBtn.textContent = 'Reveal'; gotBtn.disabled = true; againBtn.disabled = true;
+  document.getElementById('cardPos').textContent = pos + 1;
+  document.getElementById('cardTotal').textContent = act.length;
+  document.getElementById('knownCount').textContent = known.size + ' marked "got it"';
+}
+flipBtn.addEventListener('click', () => {
+  if (deck.classList.toggle('flipped')) { flipBtn.textContent = 'Hide'; gotBtn.disabled = false; againBtn.disabled = false; }
+  else flipBtn.textContent = 'Reveal';
+});
+gotBtn.addEventListener('click', () => {
+  known.add(activeOrder()[pos]);
+  localStorage.setItem('cc-known', JSON.stringify([...known]));
+  renderCard();
+});
+againBtn.addEventListener('click', () => { pos++; renderCard(); });
+document.getElementById('shuffleBtn').addEventListener('click', () => {
+  for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  pos = 0; renderCard();
+});
+document.getElementById('resetBtn').addEventListener('click', () => {
+  known.clear(); localStorage.removeItem('cc-known'); pos = 0; renderCard();
+});
+renderCard();
+
+// ---------- quiz ----------
+const QUIZ = [
+ ["A method adds an item to the List you passed it. Your list afterwards?",
+  ["Unchanged — Java copies arguments","Has the new item — same object via the reference","Depends on ArrayList vs LinkedList","Compile error"],1,
+  "Java passes a copy of the REFERENCE. Both names point at one heap object, so the mutation is visible to the caller."],
+ ["Why does WHERE profit > 100 fail when profit is a SELECT alias?",
+  ["Aliases need brackets","WHERE runs before SELECT creates the alias","Only ORDER BY allows aliases … which is why","Reserved word"],1,
+  "Logical order: FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY. At WHERE time the alias doesn't exist yet (ORDER BY can use it because it runs after SELECT)."],
+ ["Find active users with NO credential row:",
+  ["INNER JOIN + WHERE cred IS NULL","LEFT JOIN + WHERE cred.ID IS NULL","NOT IN (SELECT user_id …) always","RIGHT JOIN"],1,
+  "LEFT JOIN preserves users without matches (NULLs on the right); IS NULL detects them. INNER JOIN drops them; NOT IN breaks if the subquery has NULLs."],
+ ["A @Transactional method calls this.otherTransactionalMethod(). Result?",
+  ["Nested transaction","New independent transaction","No new transaction — the proxy was bypassed","Deadlock"],2,
+  "Spring applies @Transactional via a proxy around the bean. Internal this-calls never cross the proxy, so no transaction semantics apply."],
+ ["A request arrives with an expired JWT. What runs?",
+  ["Controller, then 401","Only the security filter — 401 before routing","Controller with null principal","Depends on the endpoint"],1,
+  "The filter chain runs before the DispatcherServlet routes anything. Bad token = rejected before any controller code."],
+ ["Your loop calls list.contains(x) for each of n items in another list. The fix?",
+  ["Sort both lists","Put one list's items in a HashSet first","Parallel streams","Use LinkedList"],1,
+  "contains on a list is O(n), making the whole thing O(n²). A HashSet makes each membership check O(1) → O(n) total."],
+ ["TOTP code is 'wrong' on a device with a skewed clock. Why?",
+  ["The secret rotated","The counter is time-based — skew computes a different step","SMS delay","The hash truncation"],1,
+  "TOTP's counter is the current 30-second window. A skewed clock computes a neighboring window's code; servers tolerate a step or two, beyond that it fails."],
+ ["Why can't a phishing site reuse a captured passkey response?",
+  ["It's encrypted","It's origin-bound and answers a one-time challenge","Passkeys expire in seconds","Biometrics are sent along"],1,
+  "The device signs the site's random challenge, bound to the origin. A fake site's challenge produces a signature worthless anywhere else — and the private key never leaves the device."],
+ ["A message consumer runs twice for one message and sends two emails. The design flaw?",
+  ["The bus is broken — file a ticket","Consumer isn't idempotent under at-least-once delivery","Emails need a delay","Messages must be encrypted"],1,
+  "At-least-once delivery guarantees occasional duplicates. Consumers must dedupe (unique message ID, upsert, check-before-act) — that's a design requirement, not a bus bug."],
+ ["Status column says PENDING; audit trail shows activation succeeded. Root cause shape?",
+  ["Clock skew","Two writes that needed one transaction were split — one landed","The user lied","Cache invalidation"],1,
+  "State change and audit write must be atomic. When they're separated and one fails, the record and its history disagree — find the code path where they're split."],
+ ["User logs in fine but can't see an app tile. Which domain?",
+  ["Authentication","Authorization — roles/subscriptions/entitlements","Federation","Proofing"],1,
+  "Identity succeeded (they're logged in). What's missing is entitlement — 403-land: roles, subscriptions, permissions."],
+ ["The stack trace shows 12 'Caused by' sections. Where do you look first?",
+  ["The first line of the trace","The LAST Caused by, then your own package's first frame","The longest section","The middle"],1,
+  "The last Caused by is the root exception. Within it, the first frame in your own code is where it blew up; frames below are the call path."],
+ ["'Smallest sending rate that clears the queue in time' — which pattern?",
+  ["Sliding window","Binary search on the answer (monotonic predicate)","DFS","Heap"],1,
+  "If rate X works, every faster rate works — monotonic. Binary search the rate space, testing feasibility at each midpoint."],
+ ["Two threads run counter++ on a shared field. Outcome?",
+  ["Always correct — ints are atomic","Lost updates possible — read-modify-write interleaves","JVM prevents it","Deadlock"],1,
+  "counter++ is three steps (read, add, write). Interleaved threads both read 5 and both write 6. Fix: atomic types, synchronization, or push the increment into the DB."],
+ ["Why does the platform check a per-record version flag before processing?",
+  ["Performance","Two codebases share the data; the flag says which one owns this record","Legal requirement","It's leftover tech debt"],1,
+  "Strangler-pattern migration: legacy and modern systems coexist on one database. The flag routes each record to the code path that understands it."]
+];
+let qOrder = [], qPos = 0, qScore = 0;
+function startQuiz(){
+  qOrder = QUIZ.map((_, i) => i);
+  for (let i = qOrder.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [qOrder[i], qOrder[j]] = [qOrder[j], qOrder[i]]; }
+  qOrder = qOrder.slice(0, 10); qPos = 0; qScore = 0; renderQuiz();
+}
+function renderQuiz(){
+  const exp = document.getElementById('quizExp'); exp.className = 'quiz-exp'; exp.textContent = '';
+  const next = document.getElementById('quizNext'); next.disabled = true;
+  if (qPos >= qOrder.length) {
+    document.getElementById('quizMeta').textContent = 'Done';
+    document.getElementById('quizQ').textContent = 'Score: ' + qScore + ' / ' + qOrder.length +
+      (qScore >= 8 ? ' — senior brain engaged.' : qScore >= 5 ? ' — solid, run it again tomorrow.' : ' — perfect: now you know exactly what to reread.');
+    document.getElementById('quizOpts').innerHTML = '';
+    const best = +(localStorage.getItem('cc-quizbest') || 0);
+    if (qScore > best) localStorage.setItem('cc-quizbest', qScore);
+    return;
+  }
+  const q = QUIZ[qOrder[qPos]];
+  document.getElementById('quizMeta').textContent = 'Question ' + (qPos + 1) + ' of ' + qOrder.length + '  ·  score ' + qScore;
+  document.getElementById('quizQ').textContent = q[0];
+  const box = document.getElementById('quizOpts'); box.innerHTML = '';
+  q[1].forEach((opt, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'quiz-opt'; b.textContent = opt;
+    b.addEventListener('click', () => {
+      if (next.disabled === false) return;   // already answered
+      [...box.children].forEach((c, j) => { if (j === q[2]) c.classList.add('correct'); });
+      if (i === q[2]) qScore++; else b.classList.add('wrong');
+      const exp2 = document.getElementById('quizExp'); exp2.textContent = q[3]; exp2.className = 'quiz-exp show';
+      next.disabled = false;
+    });
+    box.appendChild(b);
+  });
+}
+document.getElementById('quizNext').addEventListener('click', () => { qPos++; renderQuiz(); });
+document.getElementById('quizRestart').addEventListener('click', startQuiz);
+startQuiz();
+
+// initial dashboard paint
+renderPath();
+</script>
+</body>
+</html>
