@@ -205,6 +205,7 @@
     <button role="tab" aria-selected="false" data-tab="deep">Deep Dive</button>
     <button role="tab" aria-selected="false" data-tab="exo">Exostar</button>
     <button role="tab" aria-selected="false" data-tab="sys">System</button>
+    <button role="tab" aria-selected="false" data-tab="fut">2026+</button>
     <button role="tab" aria-selected="false" data-tab="gloss">Glossary</button>
     <button role="tab" aria-selected="false" data-tab="iq">Interview</button>
     <button role="tab" aria-selected="false" data-tab="cards">Drill</button>
@@ -1674,6 +1675,103 @@ edge/LB ────┤                             ├─► SQL Always-On
   </div>
 </section>
 
+<!-- ================= 2026+ / AI ERA ================= -->
+<section id="tab-fut" hidden>
+  <h2>2026+ — the engineer AI can't replace</h2>
+  <p class="lede">AI writes most of the code now. That didn't shrink the engineer's job — it moved it. Here's exactly where it moved, what to learn, and how to position yourself.</p>
+
+  <div class="card" data-learn="fut-1">
+    <span class="eyebrow">The shift</span>
+    <h3>Where your value moved</h3>
+    <div class="tablewrap"><table>
+      <tr><th>Before</th><th>Now (2026)</th></tr>
+      <tr><td>Writing code fast</td><td><b>Deciding what to build</b> — framing the problem precisely</td></tr>
+      <tr><td>Knowing syntax</td><td><b>Verifying correctness</b> — is this code right, safe, complete?</td></tr>
+      <tr><td>Producing the change</td><td><b>Owning the outcome</b> — you're accountable for every shipped line, authored or generated</td></tr>
+    </table></div>
+    <div class="reveal-box"><button type="button">AI wrote it and it broke prod. Whose fault, and what does that imply?</button>
+      <div class="answer"><p>Yours — the tool has no accountability. Implication: never ship code you couldn't have reviewed line by line. Verification is the job now.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="fut-2">
+    <span class="eyebrow">Stock up</span>
+    <h3>Skills that got MORE valuable</h3>
+    <ul>
+      <li><b>Reading and reviewing code</b> — code review IS the primary engineering act when AI generates. The Code Craft tab is now your core job skill.</li>
+      <li><b>Debugging</b> — AI code fails in plausible-looking novel ways; tracing real behavior beats pattern-matching to known bugs.</li>
+      <li><b>System design</b> — AI writes functions well, systems poorly. Boundaries, consistency, failure modes: still human judgment.</li>
+      <li><b>Domain depth</b> — your IAM/EPCS/compliance knowledge is a moat: AI can't know your platform's history, clients, and regulatory constraints.</li>
+      <li><b>Problem framing</b> — a precisely stated problem is now half the implementation. Ambiguity in = bugs out.</li>
+    </ul>
+  </div>
+
+  <div class="card" data-learn="fut-3">
+    <span class="eyebrow">Stock down</span>
+    <h3>What matters less — and the paradox</h3>
+    <ul>
+      <li><b>Down:</b> syntax memorization, boilerplate speed, framework trivia, LeetCode-as-gatekeeping.</li>
+      <li><b>The paradox:</b> fundamentals matter MORE, not less — <b>you cannot verify what you cannot read</b>. AI removed the typing, not the understanding.</li>
+      <li><b>Resolution:</b> learn fundamentals for judgment (this whole site), let AI handle production keystrokes. That's why your daily loop still exists.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Why still do LeetCode if AI solves it instantly?</button>
+      <div class="answer"><p>Not for the solutions — for the trained instinct: decomposing problems, spotting O(n²), tracing logic without running it. Those are exactly the muscles code review of AI output uses.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="fut-4">
+    <span class="eyebrow">New toolkit</span>
+    <h3>AI-engineering skills to actually learn</h3>
+    <ul>
+      <li><b>Context engineering</b> — give the AI constraints, examples, file paths, acceptance criteria. Vague ask → confident garbage. Your ticket-writing skill = your prompt skill.</li>
+      <li><b>Agentic workflows</b> — plan → execute → verify loops (Claude Code): review the plan BEFORE execution, verify AFTER. Never fire-and-forget.</li>
+      <li><b>Knowing when NOT to trust it</b> — security-sensitive code, concurrency, anything compliance-bound (EPCS!): human eyes mandatory.</li>
+      <li><b>Tool integration (MCP etc.)</b> — wiring AI to your DBs, logs, ticketing. Whoever builds the team's tooling multiplies the whole team.</li>
+      <li><b>Evals</b> — testing AI outputs systematically, not vibes. The emerging QA discipline.</li>
+    </ul>
+  </div>
+
+  <div class="card" data-learn="fut-5">
+    <span class="eyebrow">The habit</span>
+    <h3>The verification protocol for AI code</h3>
+    <ol>
+      <li><b>Read every line</b> — could you explain it in review? No → don't merge.</li>
+      <li><b>Run it</b> — AI code that compiles still lies. Execute the failure path, not just the demo.</li>
+      <li><b>Apply the senior checklist</b> — nulls, concurrency, duplicates, time, blast radius (Code Craft tab) — DOUBLE for generated code: it optimizes for plausible, not correct.</li>
+      <li><b>Write the failure test yourself</b> — the test you write is your understanding, proven.</li>
+      <li><b>Check the diff scope</b> — AI loves touching files it didn't need to. Every changed line needs a reason.</li>
+    </ol>
+  </div>
+
+  <div class="card" data-learn="fut-6">
+    <span class="eyebrow">Learning roadmap</span>
+    <h3>What to learn, 2026 → 2028</h3>
+    <div class="tablewrap"><table>
+      <tr><th>Learn</th><th>Why it compounds</th></tr>
+      <tr><td><b>Distributed systems + observability</b></td><td>AI debugs one file; YOU debug across services, queues, and logs — the skill gap widens</td></tr>
+      <tr><td><b>Security engineering</b></td><td>AI-generated code ships vulns confidently; reviewers who catch them are scarce</td></tr>
+      <tr><td><b>Identity's next wave</b></td><td>Passkeys everywhere, phishing-resistant mandates, decentralized/verifiable credentials — your domain, evolving</td></tr>
+      <tr><td><b>Platform/infra literacy</b></td><td>Where code runs (cloud, pipelines, IaC) stays human-owned longer than code itself</td></tr>
+      <tr><td><b>Writing precise specs</b></td><td>Spec-driven development: the spec is becoming the source code; ambiguity is the new bug</td></tr>
+    </table></div>
+  </div>
+
+  <div class="card" data-learn="fut-7">
+    <span class="eyebrow">Career</span>
+    <h3>Positioning yourself</h3>
+    <ul>
+      <li><b>Own outcomes, not tasks</b> — "the EPCS signing incident is handled" beats "I closed 5 tickets."</li>
+      <li><b>Be the verifier</b> — the person who can say "this is wrong, here's why, here's the fix" with evidence (your RCA practice is exactly this).</li>
+      <li><b>Pair domain + AI leverage</b> — regulated-identity expertise × AI tooling fluency = a combination almost nobody has. That's your lane.</li>
+      <li><b>Build a judgment portfolio</b> — RCAs written, reviews that caught real bugs, systems traced. Judgment is provable; collect the proof.</li>
+      <li><b>Teach it</b> — the engineer who onboards others to AI workflows becomes the multiplier the org protects.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">One sentence: what makes an engineer irreplaceable in 2026?</button>
+      <div class="answer"><p>Accountable judgment: the ability to decide what should be built, verify what was built, and own what happens in production — with the domain depth to be right.</p></div>
+    </div>
+  </div>
+</section>
+
 <!-- ================= GLOSSARY ================= -->
 <section id="tab-gloss" hidden>
   <h2>Glossary — the words that make code sound harder than it is</h2>
@@ -1788,7 +1886,7 @@ const savedTheme = localStorage.getItem('cc-theme');
 if (savedTheme) root.dataset.theme = savedTheme;
 
 // ---------- learned toggles ----------
-const TOPICS = {java:'Java', spring:'Spring', sql:'SQL', dsa:'DSA', arch:'Architecture', id:'Identity', craft:'Code Craft', deep:'Deep Dive', exo:'Exostar', sys:'System'};
+const TOPICS = {java:'Java', spring:'Spring', sql:'SQL', dsa:'DSA', arch:'Architecture', id:'Identity', craft:'Code Craft', deep:'Deep Dive', exo:'Exostar', sys:'System', fut:'Future'};
 let learned = new Set(JSON.parse(localStorage.getItem('cc-learned') || '[]'));
 document.querySelectorAll('.card[data-learn]').forEach(card => {
   const id = card.dataset.learn;
@@ -1950,7 +2048,12 @@ const CARDS = [
  ["System","Why must services be stateless to scale horizontally?","Any instance must serve any request. In-memory per-user state pins users to instances and dies with them — state belongs in the DB or a shared store."],
  ["System","RTO vs RPO?","RTO: how long you may be down (recovery time). RPO: how much data you may lose (recovery point). DR design starts from these two numbers."],
  ["System","Health check green but users failing — what's left?","Path-specific breakage: one endpoint, one shallowly-checked dependency, one bad leg behind the LB, or auth rejecting before the app. Green narrows; it doesn't clear."],
- ["System","Why promote one built artifact through DEV→QA→UAT→PROD instead of rebuilding?","Rebuilds can differ (dependency drift, build config). Promoting the identical binary means what you tested is what ships — only env config and data vary."]
+ ["System","Why promote one built artifact through DEV→QA→UAT→PROD instead of rebuilding?","Rebuilds can differ (dependency drift, build config). Promoting the identical binary means what you tested is what ships — only env config and data vary."],
+ ["Future","AI era: where did engineer value move?","From typing to judgment: framing the problem, verifying the code, owning the outcome. You're accountable for every shipped line, authored or generated."],
+ ["Future","The rule for merging AI-generated code?","Never merge what you couldn't explain line by line. Read it, run it, write the failure test yourself, apply the senior checklist double."],
+ ["Future","Why do fundamentals still matter if AI writes the code?","You cannot verify what you cannot read. AI removed the typing, not the understanding — review is the job now."],
+ ["Future","What's the rarest skill combo to build by 2028?","Domain depth (regulated identity/EPCS) × AI tooling fluency × verification judgment. AI has none of the first, everyone lacks the third."],
+ ["Future","Why does spec/ticket writing matter more than ever?","Spec-driven development: the AI builds what you state. Ambiguity in = confident garbage out. A precise problem statement is half the implementation."]
 ];
 
 let order = CARDS.map((_, i) => i);
