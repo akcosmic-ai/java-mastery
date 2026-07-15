@@ -138,6 +138,30 @@
     border-top:2px solid var(--accent); padding-top:18px;}
   #walk.show-a .walk-a{display:block}
   .walk-hint{text-align:center; color:var(--muted); font-size:14px; padding-bottom:8px;}
+  /* LC75 */
+  .lc-group{font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin:22px 0 8px;}
+  .lc-row{background:var(--surface); border:1px solid var(--line); border-radius:10px; margin:0 0 8px; box-shadow:var(--shadow); overflow:hidden;}
+  .lc-head{display:flex; align-items:center; gap:10px; padding:12px 14px; cursor:pointer; -webkit-tap-highlight-color:transparent;}
+  .lc-dot{flex:0 0 10px; height:10px; border-radius:99px; background:var(--line);}
+  .lc-dot.att{background:#D9A03F} .lc-dot.hint{background:#D9A03F} .lc-dot.solo{background:var(--good)} .lc-dot.master{background:var(--good); box-shadow:0 0 0 3px var(--good-bg);}
+  .lc-title{flex:1; font-weight:600; font-size:14.5px;}
+  .lc-diff{font-size:11px; font-weight:700; padding:2px 7px; border-radius:99px;}
+  .lc-diff.E{color:var(--good); background:var(--good-bg);} .lc-diff.M{color:var(--accent); background:var(--accent-bg);} .lc-diff.H{color:var(--bad); background:var(--bad-bg);}
+  .lc-body{display:none; padding:0 14px 14px; border-top:1px solid var(--line);}
+  .lc-row.open .lc-body{display:block}
+  .lc-body label{display:block; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); margin:12px 0 4px;}
+  .lc-body select{font:600 14px/1.3 inherit; font-family:inherit; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:9px 10px; width:100%;}
+  .lc-body textarea{width:100%; min-height:72px; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font:14px/1.5 inherit; font-family:inherit; resize:vertical;}
+  .lc-body textarea.code{font-family:ui-monospace,"Cascadia Code","SF Mono",Consolas,monospace; font-size:13px; min-height:140px; background:var(--code-bg); color:var(--code-ink); border-color:var(--code-bg);}
+  .lc-redo{font-size:13px; color:var(--muted); margin-top:8px;}
+  .lc-open{display:inline-block; margin-top:10px; font-weight:700; font-size:13.5px; color:var(--accent); text-decoration:none;}
+  .lc-filters{display:flex; gap:6px; flex-wrap:wrap; margin:0 0 14px;}
+  .lc-filters .btn{padding:8px 13px; font-size:13px;}
+  .lc-filters .btn.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .lc-summary{margin:0 0 12px;}
+  .ide-details{margin:0 0 16px; background:var(--surface); border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow);}
+  .ide-details summary{padding:14px 16px; font-weight:600; cursor:pointer; color:var(--accent);}
+  .ide-details iframe{width:100%; height:480px; border:none; border-top:1px solid var(--line); border-radius:0 0 10px 10px;}
   footer{max-width:800px; margin:0 auto; padding:10px 16px 30px; color:var(--muted); font-size:12.5px;}
 </style>
 </head>
@@ -153,6 +177,7 @@
     <button role="tab" aria-selected="false" data-tab="spring">Spring</button>
     <button role="tab" aria-selected="false" data-tab="sql">SQL</button>
     <button role="tab" aria-selected="false" data-tab="dsa">DSA</button>
+    <button role="tab" aria-selected="false" data-tab="lc">LC 75</button>
     <button role="tab" aria-selected="false" data-tab="arch">Architecture</button>
     <button role="tab" aria-selected="false" data-tab="idsec">Identity</button>
     <button role="tab" aria-selected="false" data-tab="craft">Code Craft</button>
@@ -175,6 +200,7 @@
     <div class="stat"><div class="n" id="statLearned">–</div><div class="l">cards learned</div><div class="bar"><i id="statLearnedBar"></i></div></div>
     <div class="stat"><div class="n" id="statCards">–</div><div class="l">flashcards "got it"</div></div>
     <div class="stat"><div class="n" id="statQuiz">–</div><div class="l">best quiz score</div></div>
+    <div class="stat"><div class="n" id="statLC">–</div><div class="l">LC 75 solved</div><div class="bar"><i id="statLCBar"></i></div></div>
   </div>
 
   <div class="card">
@@ -783,6 +809,34 @@ GROUP BY u.REF ORDER BY fails DESC;</pre>
       <div class="answer"><p>The same problem, from a blank file, in 3 days — no hint allowed. If it needs a hint again, it repeats again. The metric that matters is "solved solo," not "problems seen."</p></div>
     </div>
   </div>
+</section>
+
+<!-- ================= LC 75 ================= -->
+<section id="tab-lc" hidden>
+  <h2>The 75 — your problem log</h2>
+  <p class="lede">The classic Blind 75, grouped by pattern. For every problem you solve on LeetCode: set the status honestly, write a 2–3 line <b>memory hook</b>, and a day later <b>rewrite the solution from memory</b> in the code vault. That rewrite is the retention — not the first solve.</p>
+
+  <div class="card lc-summary">
+    <span class="eyebrow">Progress</span>
+    <h3><span id="lcSolvedN">0</span> / 75 solved · <span id="lcMasterN">0</span> mastered</h3>
+    <div class="bar"><i id="lcBar" style="width:0%"></i></div>
+    <p style="font-size:13.5px; color:var(--muted); margin-top:10px;">Status guide: <b>Attempted</b> = tried, didn't finish · <b>Solved with hint</b> = needed the approach · <b>Solved solo</b> = yours · <b>Mastered</b> = re-solved cold after 3+ days. Only "Mastered" means done.</p>
+  </div>
+
+  <details class="ide-details">
+    <summary>⚡ Scratch IDE (Java, runs in the browser via OneCompiler)</summary>
+    <iframe loading="lazy" src="https://onecompiler.com/embed/java?hideNew=true&hideTitle=true&theme=dark" title="Java scratch IDE"></iframe>
+  </details>
+
+  <div class="lc-filters" id="lcFilters">
+    <button class="btn on" data-f="all" type="button">All</button>
+    <button class="btn" data-f="todo" type="button">Todo</button>
+    <button class="btn" data-f="wip" type="button">In progress</button>
+    <button class="btn" data-f="solved" type="button">Solved</button>
+    <button class="btn" data-f="due" type="button">Redo due</button>
+  </div>
+
+  <div id="lcList"></div>
 </section>
 
 <!-- ================= ARCHITECTURE ================= -->
@@ -1737,6 +1791,9 @@ function renderPath(){
   const known = JSON.parse(localStorage.getItem('cc-known') || '[]');
   document.getElementById('statCards').textContent = known.length + '/' + CARDS.length;
   document.getElementById('statQuiz').textContent = localStorage.getItem('cc-quizbest') ? localStorage.getItem('cc-quizbest') + '/10' : '–';
+  const lc = lcSummary();
+  document.getElementById('statLC').textContent = lc.solved + '/75';
+  document.getElementById('statLCBar').style.width = (100 * lc.solved / 75) + '%';
   const bars = document.getElementById('topicBars'); bars.innerHTML = '';
   Object.entries(TOPICS).forEach(([pfx, name]) => {
     const cards = [...all].filter(c => c.dataset.learn.startsWith(pfx + '-'));
@@ -1972,6 +2029,167 @@ function renderQuiz(){
 document.getElementById('quizNext').addEventListener('click', () => { qPos++; renderQuiz(); });
 document.getElementById('quizRestart').addEventListener('click', startQuiz);
 startQuiz();
+
+// ---------- LC 75 ----------
+const LC75 = [
+ ["Arrays & Hashing","Two Sum","two-sum","E"],
+ ["Arrays & Hashing","Contains Duplicate","contains-duplicate","E"],
+ ["Arrays & Hashing","Valid Anagram","valid-anagram","E"],
+ ["Arrays & Hashing","Group Anagrams","group-anagrams","M"],
+ ["Arrays & Hashing","Top K Frequent Elements","top-k-frequent-elements","M"],
+ ["Arrays & Hashing","Product of Array Except Self","product-of-array-except-self","M"],
+ ["Arrays & Hashing","Longest Consecutive Sequence","longest-consecutive-sequence","M"],
+ ["Arrays & Hashing","Encode and Decode Strings","encode-and-decode-strings","M"],
+ ["Two Pointers","Valid Palindrome","valid-palindrome","E"],
+ ["Two Pointers","3Sum","3sum","M"],
+ ["Two Pointers","Container With Most Water","container-with-most-water","M"],
+ ["Sliding Window","Best Time to Buy and Sell Stock","best-time-to-buy-and-sell-stock","E"],
+ ["Sliding Window","Longest Substring Without Repeating Characters","longest-substring-without-repeating-characters","M"],
+ ["Sliding Window","Longest Repeating Character Replacement","longest-repeating-character-replacement","M"],
+ ["Sliding Window","Minimum Window Substring","minimum-window-substring","H"],
+ ["Stack","Valid Parentheses","valid-parentheses","E"],
+ ["Binary Search","Find Minimum in Rotated Sorted Array","find-minimum-in-rotated-sorted-array","M"],
+ ["Binary Search","Search in Rotated Sorted Array","search-in-rotated-sorted-array","M"],
+ ["Linked List","Reverse Linked List","reverse-linked-list","E"],
+ ["Linked List","Merge Two Sorted Lists","merge-two-sorted-lists","E"],
+ ["Linked List","Linked List Cycle","linked-list-cycle","E"],
+ ["Linked List","Reorder List","reorder-list","M"],
+ ["Linked List","Remove Nth Node From End of List","remove-nth-node-from-end-of-list","M"],
+ ["Linked List","Merge K Sorted Lists","merge-k-sorted-lists","H"],
+ ["Trees","Maximum Depth of Binary Tree","maximum-depth-of-binary-tree","E"],
+ ["Trees","Same Tree","same-tree","E"],
+ ["Trees","Invert Binary Tree","invert-binary-tree","E"],
+ ["Trees","Subtree of Another Tree","subtree-of-another-tree","E"],
+ ["Trees","Lowest Common Ancestor of a BST","lowest-common-ancestor-of-a-binary-search-tree","M"],
+ ["Trees","Binary Tree Level Order Traversal","binary-tree-level-order-traversal","M"],
+ ["Trees","Validate Binary Search Tree","validate-binary-search-tree","M"],
+ ["Trees","Kth Smallest Element in a BST","kth-smallest-element-in-a-bst","M"],
+ ["Trees","Construct Binary Tree from Preorder and Inorder","construct-binary-tree-from-preorder-and-inorder-traversal","M"],
+ ["Trees","Binary Tree Maximum Path Sum","binary-tree-maximum-path-sum","H"],
+ ["Trees","Serialize and Deserialize Binary Tree","serialize-and-deserialize-binary-tree","H"],
+ ["Tries","Implement Trie (Prefix Tree)","implement-trie-prefix-tree","M"],
+ ["Tries","Design Add and Search Words","design-add-and-search-words-data-structure","M"],
+ ["Tries","Word Search II","word-search-ii","H"],
+ ["Heap","Top K Frequent Elements (revisit as heap)","top-k-frequent-elements","M"],
+ ["Heap","Find Median from Data Stream","find-median-from-data-stream","H"],
+ ["Backtracking","Combination Sum","combination-sum","M"],
+ ["Backtracking","Word Search","word-search","M"],
+ ["Graphs","Number of Islands","number-of-islands","M"],
+ ["Graphs","Clone Graph","clone-graph","M"],
+ ["Graphs","Pacific Atlantic Water Flow","pacific-atlantic-water-flow","M"],
+ ["Graphs","Course Schedule","course-schedule","M"],
+ ["Graphs","Graph Valid Tree","graph-valid-tree","M"],
+ ["Graphs","Number of Connected Components","number-of-connected-components-in-an-undirected-graph","M"],
+ ["Graphs","Alien Dictionary","alien-dictionary","H"],
+ ["Intervals","Insert Interval","insert-interval","M"],
+ ["Intervals","Merge Intervals","merge-intervals","M"],
+ ["Intervals","Non-overlapping Intervals","non-overlapping-intervals","M"],
+ ["Intervals","Meeting Rooms","meeting-rooms","E"],
+ ["Intervals","Meeting Rooms II","meeting-rooms-ii","M"],
+ ["1-D DP","Climbing Stairs","climbing-stairs","E"],
+ ["1-D DP","House Robber","house-robber","M"],
+ ["1-D DP","House Robber II","house-robber-ii","M"],
+ ["1-D DP","Longest Palindromic Substring","longest-palindromic-substring","M"],
+ ["1-D DP","Palindromic Substrings","palindromic-substrings","M"],
+ ["1-D DP","Decode Ways","decode-ways","M"],
+ ["1-D DP","Coin Change","coin-change","M"],
+ ["1-D DP","Maximum Product Subarray","maximum-product-subarray","M"],
+ ["1-D DP","Word Break","word-break","M"],
+ ["1-D DP","Longest Increasing Subsequence","longest-increasing-subsequence","M"],
+ ["2-D DP","Unique Paths","unique-paths","M"],
+ ["2-D DP","Longest Common Subsequence","longest-common-subsequence","M"],
+ ["Greedy","Maximum Subarray","maximum-subarray","M"],
+ ["Greedy","Jump Game","jump-game","M"],
+ ["Matrix","Set Matrix Zeroes","set-matrix-zeroes","M"],
+ ["Matrix","Spiral Matrix","spiral-matrix","M"],
+ ["Matrix","Rotate Image","rotate-image","M"],
+ ["Bit Manipulation","Number of 1 Bits","number-of-1-bits","E"],
+ ["Bit Manipulation","Counting Bits","counting-bits","E"],
+ ["Bit Manipulation","Missing Number","missing-number","E"],
+ ["Bit Manipulation","Reverse Bits","reverse-bits","E"],
+ ["Bit Manipulation","Sum of Two Integers","sum-of-two-integers","M"]
+];
+let lcData = JSON.parse(localStorage.getItem('cc-lc') || '{}');
+function lcSave(){ localStorage.setItem('cc-lc', JSON.stringify(lcData)); lcSummary(); renderPath(); }
+function lcGet(slug){ return lcData[slug] || {}; }
+function lcSolvedStates(st){ return st === 'hint' || st === 'solo' || st === 'master'; }
+function lcDue(rec){
+  if (!rec.d || rec.st === 'master' || !lcSolvedStates(rec.st)) return false;
+  const solved = new Date(rec.d), now = new Date();
+  return (now - solved) / 864e5 >= 3;   // 3+ days since solve and not yet mastered → redo due
+}
+function lcSummary(){
+  const recs = Object.values(lcData);
+  const solved = LC75.filter(p => lcSolvedStates(lcGet(p[2]).st)).length;
+  const master = LC75.filter(p => lcGet(p[2]).st === 'master').length;
+  const elN = document.getElementById('lcSolvedN');
+  if (elN) { elN.textContent = solved; document.getElementById('lcMasterN').textContent = master;
+    document.getElementById('lcBar').style.width = (100 * solved / LC75.length) + '%'; }
+  return {solved, master};
+}
+let lcFilter = 'all';
+function lcMatches(rec){
+  const st = rec.st || 'todo';
+  if (lcFilter === 'all') return true;
+  if (lcFilter === 'todo') return st === 'todo' || !rec.st;
+  if (lcFilter === 'wip') return st === 'att' || st === 'hint';
+  if (lcFilter === 'solved') return lcSolvedStates(st);
+  if (lcFilter === 'due') return lcDue(rec);
+  return true;
+}
+function renderLC(){
+  const list = document.getElementById('lcList'); list.innerHTML = '';
+  let group = '';
+  LC75.forEach((p, i) => {
+    const [g, title, slug, diff] = p;
+    const rec = lcGet(slug);
+    if (!lcMatches(rec)) return;
+    if (g !== group) { group = g; const h = document.createElement('div'); h.className = 'lc-group'; h.textContent = g; list.appendChild(h); }
+    const row = document.createElement('div'); row.className = 'lc-row'; row.dataset.slug = slug;
+    const st = rec.st || 'todo';
+    const due = lcDue(rec) ? ' · <b style="color:var(--accent)">redo due</b>' : '';
+    row.innerHTML =
+      '<div class="lc-head"><span class="lc-dot ' + st + '"></span>' +
+      '<span class="lc-title">' + title + '</span>' +
+      '<span class="lc-diff ' + diff + '">' + diff + '</span></div>' +
+      '<div class="lc-body">' +
+      '<label>Status</label><select class="lc-st">' +
+        ['todo:Todo','att:Attempted','hint:Solved with hint','solo:Solved solo','master:Mastered (re-solved cold)']
+          .map(o => { const [v, l] = o.split(':'); return '<option value="' + v + '"' + (v === st ? ' selected' : '') + '>' + l + '</option>'; }).join('') +
+      '</select>' +
+      '<div class="lc-redo">' + (rec.d ? 'solved ' + rec.d + due : 'not solved yet') + '</div>' +
+      '<label>Memory hook — pattern · key insight · my mistake</label>' +
+      '<textarea class="lc-n" placeholder="e.g. HashMap value→index. Check BEFORE store or [3,3] pairs with itself. I forgot the containsKey order.">' + (rec.n || '') + '</textarea>' +
+      '<label>Code vault — rewrite your solution FROM MEMORY a day later</label>' +
+      '<textarea class="lc-c code" spellcheck="false" placeholder="public int[] twoSum(int[] nums, int target) {&#10;    // from memory — then compare on LeetCode&#10;}">' + (rec.c || '') + '</textarea>' +
+      '<a class="lc-open" href="https://leetcode.com/problems/' + slug + '/" target="_blank" rel="noopener">Open on LeetCode ↗</a>' +
+      '</div>';
+    row.querySelector('.lc-head').addEventListener('click', () => row.classList.toggle('open'));
+    row.querySelector('.lc-st').addEventListener('change', e => {
+      const r = lcGet(slug); r.st = e.target.value;
+      if (lcSolvedStates(r.st) && !r.d) r.d = new Date().toISOString().slice(0, 10);
+      if (r.st === 'todo') delete r.d;
+      lcData[slug] = r; lcSave();
+      row.querySelector('.lc-dot').className = 'lc-dot ' + r.st;
+      row.querySelector('.lc-redo').innerHTML = r.d ? 'solved ' + r.d + (lcDue(r) ? ' · <b style="color:var(--accent)">redo due</b>' : '') : 'not solved yet';
+    });
+    row.querySelector('.lc-n').addEventListener('input', e => { const r = lcGet(slug); r.n = e.target.value; lcData[slug] = r; lcSave(); });
+    const codeTa = row.querySelector('.lc-c');
+    codeTa.addEventListener('input', e => { const r = lcGet(slug); r.c = e.target.value; lcData[slug] = r; lcSave(); });
+    codeTa.addEventListener('keydown', e => {
+      if (e.key === 'Tab') { e.preventDefault(); const s = codeTa.selectionStart;
+        codeTa.value = codeTa.value.slice(0, s) + '    ' + codeTa.value.slice(codeTa.selectionEnd);
+        codeTa.selectionStart = codeTa.selectionEnd = s + 4;
+        const r = lcGet(slug); r.c = codeTa.value; lcData[slug] = r; lcSave(); }
+    });
+    list.appendChild(row);
+  });
+}
+document.querySelectorAll('#lcFilters .btn').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#lcFilters .btn').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); lcFilter = b.dataset.f; renderLC();
+}));
+lcSummary(); renderLC();
 
 // ---------- walk mode ----------
 const walk = document.getElementById('walk');
