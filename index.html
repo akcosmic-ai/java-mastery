@@ -124,6 +124,20 @@
   .quiz-exp{display:none; background:var(--accent-bg); border-radius:8px; padding:10px 14px; margin-top:10px; font-size:14px;}
   .quiz-exp.show{display:block}
   .themebtn{position:fixed; right:14px; bottom:14px; z-index:20; border-radius:999px; padding:10px 14px; box-shadow:var(--shadow);}
+  .walkbtn{position:fixed; left:14px; bottom:14px; z-index:20; border-radius:999px; padding:12px 18px; box-shadow:var(--shadow);
+    background:var(--accent); border-color:var(--accent); color:#fff; font-size:15px;}
+  #walk{position:fixed; inset:0; z-index:40; background:var(--bg); display:none; flex-direction:column; padding:18px;}
+  #walk.on{display:flex}
+  .walk-top{display:flex; justify-content:space-between; align-items:center; color:var(--muted); font-size:14px;}
+  .walk-top .btn{padding:8px 14px}
+  .walk-body{flex:1; display:flex; flex-direction:column; justify-content:center; gap:18px; max-width:640px;
+    margin:0 auto; width:100%; cursor:pointer; -webkit-tap-highlight-color:transparent;}
+  .walk-topic{font-size:13px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--accent);}
+  .walk-q{font-size:clamp(24px, 6vw, 34px); font-weight:700; line-height:1.3; text-wrap:balance;}
+  .walk-a{font-size:clamp(18px, 4.6vw, 24px); line-height:1.5; color:var(--ink); display:none;
+    border-top:2px solid var(--accent); padding-top:18px;}
+  #walk.show-a .walk-a{display:block}
+  .walk-hint{text-align:center; color:var(--muted); font-size:14px; padding-bottom:8px;}
   footer{max-width:800px; margin:0 auto; padding:10px 16px 30px; color:var(--muted); font-size:12.5px;}
 </style>
 </head>
@@ -142,6 +156,8 @@
     <button role="tab" aria-selected="false" data-tab="arch">Architecture</button>
     <button role="tab" aria-selected="false" data-tab="idsec">Identity</button>
     <button role="tab" aria-selected="false" data-tab="craft">Code Craft</button>
+    <button role="tab" aria-selected="false" data-tab="deep">Deep Dive</button>
+    <button role="tab" aria-selected="false" data-tab="exo">Exostar</button>
     <button role="tab" aria-selected="false" data-tab="cards">Drill</button>
   </nav>
 </header>
@@ -1107,6 +1123,320 @@ Caused by: java.lang.NullPointerException      ← ★ LAST "Caused by"
   </div>
 </section>
 
+<!-- ================= DEEP DIVE ================= -->
+<section id="tab-deep" hidden>
+  <h2>Deep dive — intermediate &amp; advanced</h2>
+  <p class="lede">The layer below the framework: how the machinery actually works, and the failure modes seniors recognize on sight.</p>
+
+  <div class="card" data-learn="deep-1">
+    <span class="eyebrow">Spring internals</span>
+    <h3>Proxies: how @Transactional really works</h3>
+    <p>Spring doesn't change your class — it wraps the bean in a <b>proxy</b> that intercepts calls: open transaction → call your method → commit/rollback. Everything annotation-driven (@Transactional, @Async, security annotations, caching) rides this mechanism.</p>
+<pre>caller ──► [proxy: begin txn] ──► yourService.bindCredential() ──► [proxy: commit]
+
+yourService.bindCredential() ──► this.helper()   <span class="c">// stays INSIDE the object —</span>
+                                                  <span class="c">// the proxy never sees it</span></pre>
+    <ul>
+      <li>Self-invocation (<code>this.method()</code>) bypasses the proxy → annotations on that method are ignored.</li>
+      <li>Proxies wrap <em>public</em> methods; @Transactional on private/final methods silently does nothing.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">An @Async method runs synchronously when called from its own class. Why?</button>
+      <div class="answer"><p>Same proxy rule as @Transactional: the async dispatch lives in the proxy, and internal calls never cross it. Move the method to another bean or inject the bean into itself.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="deep-2">
+    <span class="eyebrow">Spring internals</span>
+    <h3>Transaction propagation &amp; rollback rules</h3>
+    <ul>
+      <li><b>REQUIRED</b> (default): join the caller's transaction if one exists, else start one. One failure rolls back everything joined.</li>
+      <li><b>REQUIRES_NEW</b>: suspend the current transaction, run an independent one that commits on its own — how audit rows survive a rolled-back business operation.</li>
+      <li>Rollback happens on <b>unchecked</b> exceptions by default. A checked exception thrown through @Transactional <em>commits</em> unless you say <code>rollbackFor</code>.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">You want the "attempt failed" audit row to survive even when the operation rolls back. Design it.</button>
+      <div class="answer"><p>Write the audit row in a REQUIRES_NEW method (on a <em>different</em> bean — self-invocation!). The inner transaction commits independently; the outer one can still roll back the business writes.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="deep-3">
+    <span class="eyebrow">Plumbing</span>
+    <h3>Connection pools — the resource everyone forgets</h3>
+    <p>Opening a DB connection is expensive, so apps keep a fixed <b>pool</b> (10–50). Every query borrows one and must return it. The two classic failures:</p>
+    <ul>
+      <li><b>Leak:</b> a code path exits without returning the connection (missing finally/try-with-resources). The pool drains over hours → every request suddenly hangs on "waiting for connection." Restart "fixes" it — until tomorrow. This is exactly why legacy code religiously calls its finalize-datasource in <code>finally</code>.</li>
+      <li><b>Exhaustion under load:</b> slow queries hold connections longer → pool empties → timeouts cascade. The DB looks "down" but the bottleneck is the pool.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">All endpoints hang, DB is healthy, restart fixes it for a day. Diagnosis?</button>
+      <div class="answer"><p>Connection leak. Find the code path that borrows without a guaranteed return — usually an early return or exception path skipping cleanup. Pool metrics (active vs idle climbing to max) confirm it.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="deep-4">
+    <span class="eyebrow">Plumbing</span>
+    <h3>Resilience: timeouts, retries, circuit breakers</h3>
+    <p>Every remote call needs three decisions (your services use Resilience4j for these):</p>
+    <ul>
+      <li><b>Timeout</b>: how long to wait before giving up. No timeout = one slow dependency freezes your thread pool.</li>
+      <li><b>Retry</b>: try again on transient failure — but ONLY if the operation is idempotent, or retries duplicate it.</li>
+      <li><b>Circuit breaker</b>: after N failures, stop calling for a while and fail fast — protects both sides from a death spiral.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Why is "add retry" dangerous on a POST that creates a credential?</button>
+      <div class="answer"><p>The first attempt may have succeeded (response lost in transit). Retry = second credential. Either make creation idempotent (client-supplied unique ref, upsert semantics) or don't retry non-idempotent writes.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="deep-5">
+    <span class="eyebrow">Concurrency</span>
+    <h3>The real toolbox</h3>
+    <ul>
+      <li><code>synchronized</code> — one thread at a time; simple, coarse. Legacy singletons live on this.</li>
+      <li><code>volatile</code> — <b>visibility</b> only: threads see the latest write. NOT atomicity: <code>volatile int x; x++</code> still races (read-add-write).</li>
+      <li><code>AtomicInteger.incrementAndGet()</code> — atomic counters without locks.</li>
+      <li><code>ConcurrentHashMap</code> — safe concurrent map; <code>computeIfAbsent</code> is atomic per key. The cache building block.</li>
+      <li>Tomcat's worker pool IS your concurrency ceiling: ~200 threads by default. Block them all (slow DB, missing timeout) and the service is "down" while the process is fine.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Two threads run <code>failCount++</code> on a shared field. Three ways to fix it?</button>
+      <div class="answer"><p>(1) AtomicInteger, (2) synchronized block, (3) best for your platform: push it into the DB — <code>UPDATE … SET cnt = cnt + 1</code> serializes on the row lock and survives multiple service instances, which in-JVM fixes don't.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="deep-6">
+    <span class="eyebrow">JVM</span>
+    <h3>Memory &amp; GC — enough to read an incident</h3>
+    <ul>
+      <li>Heap = young generation (new objects, collected fast + often) + old generation (survivors). Full GC pauses = old gen pressure.</li>
+      <li><b>OutOfMemoryError: Java heap space</b> — something holds references forever: unbounded caches/maps, giant result sets (<code>SELECT *</code> from a million-row table into a List), accumulating listeners.</li>
+      <li>Symptom curve of a leak: sawtooth heap graph whose valleys climb day over day, then GC storms (CPU pinned, requests slow) before the OOM.</li>
+      <li>First questions: what grew? (heap dump / histogram: which class has millions of instances) and what changed? (deploy, traffic, data volume).</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Service gets slow every afternoon, fast after restart, heap climbing. Leak or load?</button>
+      <div class="answer"><p>Leak-shaped: load-only pressure recovers when traffic drops; climbing valleys after GC mean retained objects accumulate. Confirm with two heap histograms an hour apart — the leaking class's instance count only goes up.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="deep-7">
+    <span class="eyebrow">Database</span>
+    <h3>Blocking vs deadlocks</h3>
+    <ul>
+      <li><b>Blocking</b>: A holds a lock, B waits. Resolves when A commits. Long transactions + hot rows = timeouts that look random.</li>
+      <li><b>Deadlock</b>: A waits for B's lock while B waits for A's — circular. The DB picks a <b>victim</b>, kills it, the other proceeds. The victim's error is retryable by design.</li>
+      <li>Prevention: touch tables in a consistent order, keep transactions short, never hold a transaction across a remote call.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Why is "transaction open while calling another service over HTTP" a cardinal sin?</button>
+      <div class="answer"><p>The row locks are held for the whole remote call — seconds, or forever on a hang. Every other writer of those rows queues behind it. One slow dependency becomes a database-wide pileup.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="deep-8">
+    <span class="eyebrow">Database</span>
+    <h3>Isolation levels — what readers see mid-write</h3>
+    <ul>
+      <li><b>READ COMMITTED</b> (SQL Server default): readers see only committed data, but two reads in one transaction can differ (non-repeatable).</li>
+      <li><b>READ UNCOMMITTED / NOLOCK</b>: reads uncommitted, possibly-rolled-back data. Fine for rough triage counts; never for logic.</li>
+      <li><b>Snapshot/RCSI</b>: readers see a consistent point-in-time photo; writers don't block readers.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Your investigation query shows a row that "disappears" on re-run. What might you have seen?</button>
+      <div class="answer"><p>Under NOLOCK: an uncommitted write that later rolled back — data that never officially existed. Or simply a concurrent delete between reads under READ COMMITTED. Either way: re-verify before building an RCA on one read.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="deep-9">
+    <span class="eyebrow">Database</span>
+    <h3>Index design — composite order matters</h3>
+<pre>INDEX (CLIENT_ID, STATUS, CREATE_TIME)
+
+WHERE CLIENT_ID = ? AND STATUS = ?          ✓ seek (leftmost prefix)
+WHERE CLIENT_ID = ?                          ✓ seek
+WHERE STATUS = ?                             ✗ scan — skipped the first column
+WHERE CLIENT_ID = ? ORDER BY CREATE_TIME     ✓ seek + no sort needed</pre>
+    <ul>
+      <li>A composite index is sorted by column 1, then 2, then 3 — like a phone book (last name, first name). You can't look up by first name alone.</li>
+      <li><b>Covering</b>: if the index contains every column the query needs, the table itself is never touched — the fastest query is one that never leaves the index.</li>
+      <li>Equality columns first, range/sort columns last.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Why does the multi-tenant rule "every query carries CLIENT_ID" also make indexes happy?</button>
+      <div class="answer"><p>Indexes on tenant tables lead with CLIENT_ID — providing it gives every query the leftmost prefix and a seek. Skipping it isn't just a data-leak risk; it's a full scan of everyone's rows.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="deep-10">
+    <span class="eyebrow">APIs</span>
+    <h3>Evolving APIs without breaking clients</h3>
+    <ul>
+      <li>Safe (additive): new optional field, new endpoint, new enum value <em>you emit</em>.</li>
+      <li>Breaking: renaming/removing a field, changing a type, making optional required, new <em>required</em> input.</li>
+      <li>Jackson default: unknown fields in a response are ignored by clients — which is what makes additive change safe. Strict deserializers break on them; know which your consumers use.</li>
+      <li>When breaking is unavoidable: version the path (<code>/v1/ → /v2/</code>) and run both — which is precisely why platforms accumulate parallel API versions for years.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Why does removing a "deprecated" response field count as a production incident waiting to happen?</button>
+      <div class="answer"><p>You can't see who still reads it. Integrations parse responses on their schedule, not yours — the field is a contract until every consumer confirms otherwise (or telemetry proves zero readers).</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= EXOSTAR ================= -->
+<section id="tab-exo" hidden>
+  <h2>Exostar — the real codebase, mapped</h2>
+  <p class="lede">Actual class names, flows, and states from the platform. Concepts from every other tab, wearing their production names. (No secrets, hosts, clients, or credentials here — names and shapes only.)</p>
+
+  <div class="card" data-learn="exo-1">
+    <span class="eyebrow">The fork</span>
+    <h3>Two engines, one database: v01 vs v02</h3>
+    <p>The MFA platform runs two codebases over the <em>same</em> tables — the strangler pattern live:</p>
+    <div class="tablewrap"><table>
+      <tr><th></th><th>Classic SOTP (v01)</th><th>iam-mfa-mgmt (v02)</th></tr>
+      <tr><td>Stack</td><td>plain Java, Jersey REST, Torque ORM</td><td>Spring Boot, Spring MVC</td></tr>
+      <tr><td>Config</td><td>JMX singletons (<code>ClientConfig</code>)</td><td>Spring Cloud Config + Key Vault</td></tr>
+      <tr><td>Marker</td><td><code>DATA_VERSION = 'v01'</code></td><td><code>DATA_VERSION = 'v02'</code></td></tr>
+    </table></div>
+    <p>iam-mfa-mgmt <b>depends on</b> the sotp libraries (<code>xo-sotp-core</code>, <code>xo-sotp-da</code>) — it wraps the legacy engine rather than replacing it. Both write the same <code>DB_USER_ACCT</code>.</p>
+    <div class="reveal-box"><button type="button">First triage question for any MFA user issue?</button>
+      <div class="answer"><p>Check <code>DATA_VERSION</code> on the user's <code>DB_USER_ACCT</code> row. v01 → read the classic SOTP codebase; v02 → read iam-mfa-mgmt. Debugging the wrong engine wastes hours.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="exo-2">
+    <span class="eyebrow">Credentials</span>
+    <h3><code>SotpCredHelperFactory</code> — the dispatch you predicted</h3>
+    <p>The factory pattern card, in production (iam-mfa-mgmt, <code>util/cred/</code>):</p>
+<pre>SotpCredHelperFactory ──► SotpCredHwtokHelper    (SafeNet hardware tokens)
+                      ──► SotpCredOobHelper      (SMS / voice phone)
+                      ──► SotpCredSwtokHelper    (authenticator app)
+                      ──► SotpCredPasskeyHelper  (FIDO2 / passkeys)</pre>
+    <p>All implement the shared contract (<code>CredentialHelper</code> / base <code>SotpCredHelper</code>): validate-for-add, bind, per-type rules. Adding a credential type = one new helper + one factory entry — the Open/Closed card, verbatim.</p>
+    <div class="reveal-box"><button type="button">Where do you look when ONE credential type misbehaves but others are fine?</button>
+      <div class="answer"><p>That type's helper class — its overrides are the only per-type logic. Shared symptoms across all types point at the base helper or the factory/caller instead. The architecture localizes the bug for you.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="exo-3">
+    <span class="eyebrow">Credentials</span>
+    <h3>The real state machine: <code>CredStatus</code></h3>
+<pre>NASCENT ─► WTG_ACTIVATION ─► ACTIVE ─► SUSPENDED ⇄ ACTIVE
+                │                          │
+                └── stuck here = the        └──► DEAD (logical delete)
+                    classic bug class</pre>
+    <ul>
+      <li>Hardware token add: created in <code>WTG_ACTIVATION</code> with the token serial as ref; <code>validateForAdd()</code> confirms the token exists; an OTP submit proves possession → ACTIVE with a <code>boundAt</code> timestamp.</li>
+      <li>Binding failure mid-flow strands the credential in WTG_ACTIVATION: UI shows Deactivate/Revoke but it never becomes usable — the enum card's "stuck state," in production.</li>
+      <li>EPCS checks <code>boundAt</code> to decide whether a credential was properly bound.</li>
+    </ul>
+  </div>
+
+  <div class="card" data-learn="exo-4">
+    <span class="eyebrow">Proofing</span>
+    <h3><code>SotpProofHelperFactory</code> — Template Method at scale</h3>
+<pre>base skeleton (SotpProofHelper):
+PROOF_PREAMBLE ─► ACCEPT_TERMS ─► WTG_SUBSCRIPTION ─► WTG_CRED_CHK
+        ─► [type-specific steps] ─► PROOF_ACTVT_CRED ─► PROOF_RETURN
+
+type-specific helpers fill the middle:
+l3xo     → L3XoProofHelper     PII + knowledge questions (+ mailed OTP fallback)
+l3xo_pb  → L3XoPbProofHelper   webcam review by a human proofer → OTP
+ial2xo   → Ial2XoProofHelper   digital ID verification
+ievxo    → IevXoProofHelper    document/evidence upload + attestation</pre>
+    <p>The shared state machine lives in the base class; each proof type overrides only its middle steps — the Template Method card wearing its real name. The transaction record is <code>DB_PROOFING_XN</code>, itself version-flagged v01/v02.</p>
+    <div class="reveal-box"><button type="button">A proofing bug hits webcam users only. Which class first, and what would make you move to the base class?</button>
+      <div class="answer"><p><code>L3XoPbProofHelper</code> first — webcam-only symptoms live in its overrides (proofer approve/reject, resume-by-OTP). If the same failure then shows in other proof types, the shared step logic in <code>SotpProofHelper</code> owns it.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="exo-5">
+    <span class="eyebrow">EPCS</span>
+    <h3>The signing chain — every gate has a name</h3>
+<pre>POST /v1/users/{userRef}/docSignatures/start        (DocSignController)
+  ─► SotpSignatureHelper.processSignRequest
+        ├─ testCredEligible     credential ACTIVE? bound? (unbound only if
+        │                       client config allowUnboundCredSignature)
+        ├─ testProcessEligible  BLOCKED while proofing is in progress
+        └─ signData             loop the digests, sign each
+              ─► SfSigner.performPcsSurescriptSignature
+  events: EventAuditor posts signStart / signFail</pre>
+    <p>Input: digests of the prescriptions (never the documents — the PKI card explains why). Output: signature + audit reference per digest.</p>
+    <div class="reveal-box"><button type="button">"Signing failed" for one prescriber. Name the three gates to check, in order.</button>
+      <div class="answer"><p>(1) Credential state — ACTIVE and bound (<code>testCredEligible</code>)? (2) Proofing in progress (<code>testProcessEligible</code> blocks it)? (3) The signer itself (<code>SfSigner</code> errors). The signFail event's detail usually says which gate refused.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="exo-6">
+    <span class="eyebrow">EPCS</span>
+    <h3>Push-approved signing: a staged transaction</h3>
+<pre>stageSignRequest()          store the request  (DB_PUSH_SIGN_XN)
+   ─► push to enrolled app ─► user approves on phone
+processStagedSignRequest()  complete the signature
+handlePushFailResponse()    clean up on decline/timeout</pre>
+    <p>The "staged transaction" shape from the Identity tab, in production: request persisted → user acts out-of-band → completion or cleanup. Stuck = find which stage the row is parked in.</p>
+  </div>
+
+  <div class="card" data-learn="exo-7">
+    <span class="eyebrow">Security</span>
+    <h3>The JWT filter chain, by name</h3>
+<pre>request ─► IamSotpVerifyTokenFilter      verify the SOTP JWT
+              └─ ok → SotpIdTokenPrincipal into the security context
+IamSotpSecurityConfig                     stateless chain config
+                                          (Spring Security auto-config excluded —
+                                           the service brings its OWN auth)</pre>
+    <ul>
+      <li>Signing keys are <b>rolling JWKs stored in the database</b> (<code>jwkdb</code>) — rollover works because verification tries current + recent keys, so in-flight tokens survive.</li>
+      <li>401 on this service = these classes, never the controllers. The Spring tab's filter card, with real names.</li>
+    </ul>
+  </div>
+
+  <div class="card" data-learn="exo-8">
+    <span class="eyebrow">Events</span>
+    <h3><code>EventAuditor</code> and the event vocabulary</h3>
+    <p>State changes post <code>APP_EVENT</code> rows via <code>EventAuditor</code> — the audit trail every investigation reads. The vocabulary is regular:</p>
+<pre>authnOk / authnFail            password auth
+hwtokAuthnOk / hwtokAuthnFail  hardware token auth
+oobAuthnOk / oobAuthnFail      SMS/voice auth
+credAddOk / credAddFail        credential add        credDelete, credStatusUpdate
+proofOk / proofFail            proofing outcome      prooferApprove
+signStart / signFail           EPCS signing</pre>
+    <p>Async legs ride Azure Service Bus to <code>iam-event-handler</code> (routing) and <code>iam-email</code> (Freemarker templates) — the three-hop email triage from the Architecture tab, with real service names.</p>
+    <div class="reveal-box"><button type="button">Reconstruct "what happened to this user last Tuesday" — what's the query shape?</button>
+      <div class="answer"><p>APP_EVENT filtered by the user as ACTOR and a time range around the incident, ordered by CREATE_TIME, joined to its detail table. The event-type vocabulary above turns the rows into a story.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="exo-9">
+    <span class="eyebrow">Patterns</span>
+    <h3>The DNA pattern (iam-cred-mgmt)</h3>
+<pre>dna/mag/sotp/MagSotpCredHelper   + MagSotpCredTypeFactory
+dna/baid/sotp/BaidSotpCredHelper + BaidSotpCredTypeFactory
+dna/sam/sotp/SamSotpCredHelper   + SamSotpCredTypeFactory</pre>
+    <p>One helper + factory per <em>product</em>, extending a shared base. Product-specific behavior = a new DNA class, never <code>if (product == …)</code> conditionals in the shared service. It's the credential-type factory pattern applied one level up — per product instead of per credential.</p>
+    <div class="reveal-box"><button type="button">Two products disagree about which credentials a user may add. Where's the difference encoded?</button>
+      <div class="answer"><p>In their DNA classes — compare the two <code>*SotpCredHelper</code>s' overrides. The shared base is identical for both by construction, so product divergence lives only there.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="exo-10">
+    <span class="eyebrow">Config</span>
+    <h3>XoConfig: the config database, concretely</h3>
+<pre>CONFIG_BEAN ("a client's SOTP config")  ──1:N──►  CONFIG_ITEM (name → value)
+loaded by:  "SOTP Client Config" loader</pre>
+    <ul>
+      <li>This is the Architecture tab's "config database" layer with its real shape: per-client behavior flags (like <code>allowUnboundCredSignature</code>) live here as CONFIG_ITEMs.</li>
+      <li>Legacy SOTP loads XoConfig into memory at startup — changes need a <b>soft reload</b> to take effect. "I changed the config and nothing happened" = the Spring tab's frozen-bean card, legacy edition.</li>
+      <li>House query style: resolve beans/items <em>by name</em>, never by hard-coded IDs — IDs differ across environments.</li>
+    </ul>
+  </div>
+
+  <div class="card" data-learn="exo-11">
+    <span class="eyebrow">Data</span>
+    <h3>The tables that answer 80% of tickets</h3>
+    <div class="tablewrap"><table>
+      <tr><th>Table</th><th>What it holds</th><th>Key columns to know</th></tr>
+      <tr><td><code>DB_CLIENT</code></td><td>tenants</td><td>NAME, STATUS_CODE</td></tr>
+      <tr><td><code>DB_USER_ACCT</code></td><td>MFA accounts</td><td>REF, CLIENT_ID, STATUS_CODE, DATA_VERSION, OTP_FAIL_CNT, LOCK_UNTIL</td></tr>
+      <tr><td><code>DB_HWTOK_CRED</code> / <code>DB_OOB_CRED</code></td><td>tokens / phones</td><td>USER_ID, STATUS_CODE, AUTHN_FAIL_CNT</td></tr>
+      <tr><td><code>DB_PROOFING_XN</code></td><td>proofing transactions</td><td>USER_ID, STATUS_CODE, PROOF_TYPE_ID</td></tr>
+      <tr><td><code>APP_EVENT</code></td><td>the audit trail</td><td>ACTOR, TYPE, CREATE_TIME (huge — always time-bound!)</td></tr>
+    </table></div>
+    <p>The iron rule from the multi-tenancy card, concretely: almost everything is scoped by <code>CLIENT_ID</code> — a user REF is only unique <em>per client</em>. Every query carries it.</p>
+  </div>
+</section>
+
 <!-- ================= DRILL (flashcards + quiz) ================= -->
 <section id="tab-cards" hidden>
   <h2>Drill — recall beats rereading</h2>
@@ -1145,7 +1475,22 @@ Caused by: java.lang.NullPointerException      ← ★ LAST "Caused by"
 </main>
 
 <button class="btn themebtn" id="themeBtn" type="button" aria-label="Toggle theme">◐ Theme</button>
-<footer>Personal study notes. All examples are simplified teaching mirrors of public patterns and standards — not production source.</footer>
+<button class="btn walkbtn" id="walkBtn" type="button">🚶 Walk</button>
+
+<div id="walk" role="dialog" aria-label="Walk mode">
+  <div class="walk-top">
+    <span id="walkCount">0 reviewed</span>
+    <button class="btn" id="walkClose" type="button">✕ Close</button>
+  </div>
+  <div class="walk-body" id="walkBody">
+    <span class="walk-topic" id="walkTopic"></span>
+    <div class="walk-q" id="walkQ"></div>
+    <div class="walk-a" id="walkA"></div>
+  </div>
+  <div class="walk-hint" id="walkHint">tap anywhere → reveal · tap again → next card</div>
+</div>
+
+<footer>Personal study notes. Names and patterns only — no credentials, secrets, hosts, or client data appear anywhere on this page.</footer>
 
 <script>
 // ---------- tabs ----------
@@ -1173,7 +1518,7 @@ const savedTheme = localStorage.getItem('cc-theme');
 if (savedTheme) root.dataset.theme = savedTheme;
 
 // ---------- learned toggles ----------
-const TOPICS = {java:'Java', spring:'Spring', sql:'SQL', dsa:'DSA', arch:'Architecture', id:'Identity', craft:'Code Craft'};
+const TOPICS = {java:'Java', spring:'Spring', sql:'SQL', dsa:'DSA', arch:'Architecture', id:'Identity', craft:'Code Craft', deep:'Deep Dive', exo:'Exostar'};
 let learned = new Set(JSON.parse(localStorage.getItem('cc-learned') || '[]'));
 document.querySelectorAll('.card[data-learn]').forEach(card => {
   const id = card.dataset.learn;
@@ -1306,7 +1651,24 @@ const CARDS = [
  ["Craft","A good code-reading question has what property?","A findable, checkable answer with a stopping condition — 'where is status set to ACTIVE?', never 'what does this class do?'"],
  ["Craft","Stack trace protocol, steps 1–2?","Jump to the LAST 'Caused by:'; find the first line in your own package. That's where it broke."],
  ["Craft","The two checklist items that catch the most bugs in an event-driven MFA platform?","Duplicates (at-least-once guarantees them) and concurrency (counters, transitions, sync daemons all race)."],
- ["Craft","Why does recall beat rereading?","Memory forms on retrieval effort, not exposure. Failing a blank-page attempt then checking IS the study."]
+ ["Craft","Why does recall beat rereading?","Memory forms on retrieval effort, not exposure. Failing a blank-page attempt then checking IS the study."],
+ ["Deep Dive","How does @Transactional actually work, and what defeats it?","A proxy wraps the bean: begin → your method → commit/rollback. Self-invocation (this.method()) and non-public methods never cross the proxy — annotation ignored."],
+ ["Deep Dive","REQUIRES_NEW propagation does what?","Suspends the current transaction and runs an independent one that commits on its own — how a failure-audit row survives a rolled-back operation."],
+ ["Deep Dive","All endpoints hang, DB healthy, restart fixes it for a day. Diagnosis?","Connection-pool leak: a code path borrows a connection without a guaranteed return. Pool drains over hours; find the missing finally/try-with-resources."],
+ ["Deep Dive","Why is retry dangerous on a non-idempotent POST?","The first attempt may have succeeded with the response lost — retry duplicates the operation. Make it idempotent (unique client ref) or don't retry."],
+ ["Deep Dive","volatile guarantees what — and doesn't?","Visibility (threads see the latest write). NOT atomicity: volatile x++ still races. Counters need AtomicInteger, sync, or a DB-side increment."],
+ ["Deep Dive","Blocking vs deadlock?","Blocking: waiting on a held lock, resolves at commit. Deadlock: circular wait — the DB kills a victim; that error is retryable by design."],
+ ["Deep Dive","Why never hold a DB transaction across a remote HTTP call?","Row locks are held for the whole call — one slow dependency queues every other writer of those rows into a pileup."],
+ ["Deep Dive","Composite index (CLIENT_ID, STATUS, TIME) — which WHEREs can seek?","Ones using a leftmost prefix: CLIENT_ID alone, or CLIENT_ID+STATUS. STATUS alone scans — like searching a phone book by first name."],
+ ["Deep Dive","Which API changes are safe, which break clients?","Safe: additive (new optional field, new endpoint). Breaking: rename/remove/retype a field, new required input. When unavoidable: version the path and run both."],
+ ["Exostar","DATA_VERSION v01 vs v02 — what does it decide?","Which engine owns the record: v01 = classic SOTP (Torque/Jersey), v02 = iam-mfa-mgmt (Spring). Always the first triage check."],
+ ["Exostar","Name the four credential helpers behind SotpCredHelperFactory.","SotpCredHwtokHelper (hardware), SotpCredOobHelper (phone), SotpCredSwtokHelper (authenticator app), SotpCredPasskeyHelper (FIDO2)."],
+ ["Exostar","Token shows Deactivate/Revoke but never works. State and cause?","Stuck in WTG_ACTIVATION — created but binding never completed (OTP verification failed mid-flow). The classic stuck-state bug class."],
+ ["Exostar","The four proof types and their helpers?","l3xo (PII+KBA, L3XoProofHelper), l3xo_pb (webcam proofer, L3XoPbProofHelper), ial2xo (digital ID, Ial2XoProofHelper), ievxo (evidence upload, IevXoProofHelper) — dispatched by SotpProofHelperFactory."],
+ ["Exostar","Which checks gate EPCS signing in SotpSignatureHelper?","testCredEligible (ACTIVE + bound, unbound only if client config allows) and testProcessEligible (blocked while proofing in progress); then SfSigner signs the digests."],
+ ["Exostar","Where does 'the user never got the email' triage run, by name?","APP_EVENT row (did it fire?) → Azure Service Bus → iam-event-handler log (consumed?) → iam-email log (template rendered/sent?)."],
+ ["Exostar","What is the DNA pattern in iam-cred-mgmt?","One *SotpCredHelper + *SotpCredTypeFactory per product (MAG/BAID/SAM) extending a shared base — product behavior as new classes, never conditionals."],
+ ["Exostar","You changed a CONFIG_ITEM but legacy SOTP behaves old. Why?","Legacy loads XoConfig into memory at startup — it needs a soft reload. The frozen-config idea, legacy edition."]
 ];
 
 let order = CARDS.map((_, i) => i);
@@ -1392,7 +1754,19 @@ const QUIZ = [
   "counter++ is three steps (read, add, write). Interleaved threads both read 5 and both write 6. Fix: atomic types, synchronization, or push the increment into the DB."],
  ["Why does the platform check a per-record version flag before processing?",
   ["Performance","Two codebases share the data; the flag says which one owns this record","Legal requirement","It's leftover tech debt"],1,
-  "Strangler-pattern migration: legacy and modern systems coexist on one database. The flag routes each record to the code path that understands it."]
+  "Strangler-pattern migration: legacy and modern systems coexist on one database. The flag routes each record to the code path that understands it."],
+ ["An @Transactional method's writes aren't rolling back when a checked exception is thrown. Why?",
+  ["Checked exceptions commit by default — rollbackFor is needed","The DB ignores Java exceptions","@Transactional only works on GETs","Jackson swallowed it"],0,
+  "Spring rolls back on unchecked exceptions by default. Checked exceptions pass through and the transaction commits — unless rollbackFor declares them."],
+ ["Index is (CLIENT_ID, STATUS, CREATE_TIME). Query filters only STATUS. Result?",
+  ["Seek — any column works","Scan — leftmost prefix (CLIENT_ID) was skipped","Error","Deadlock"],1,
+  "A composite index is sorted by column 1 first, like a phone book by last name. Skipping CLIENT_ID means the sort order is useless — full scan."],
+ ["A user's MFA record has DATA_VERSION = 'v01'. Where do you read the code?",
+  ["iam-mfa-mgmt (Spring)","Classic SOTP (Torque/Jersey) — v01 records run the legacy engine","Either — same code","The config server"],1,
+  "Two engines share the tables; the flag says which one owns the record. v01 → legacy SOTP, v02 → iam-mfa-mgmt. Debugging the wrong engine wastes hours."],
+ ["EPCS signing fails for a prescriber mid-proofing. Which gate refused?",
+  ["testCredEligible","testProcessEligible — signing is blocked while proofing is in progress","SfSigner","The message bus"],1,
+  "The signature asserts a verified person signed; mid-proofing that isn't true yet. testProcessEligible enforces it as a state guard."]
 ];
 let qOrder = [], qPos = 0, qScore = 0;
 function startQuiz(){
@@ -1431,6 +1805,38 @@ function renderQuiz(){
 document.getElementById('quizNext').addEventListener('click', () => { qPos++; renderQuiz(); });
 document.getElementById('quizRestart').addEventListener('click', startQuiz);
 startQuiz();
+
+// ---------- walk mode ----------
+const walk = document.getElementById('walk');
+let walkQueue = [], walkPos = 0, walkReviewed = 0, wakeLock = null;
+function buildWalkQueue(){
+  const idx = CARDS.map((_, i) => i);
+  for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+  // unmastered cards first — walking time goes to what you don't know yet
+  walkQueue = [...idx.filter(i => !known.has(i)), ...idx.filter(i => known.has(i))];
+}
+function renderWalk(){
+  if (walkPos >= walkQueue.length) { buildWalkQueue(); walkPos = 0; }
+  const c = CARDS[walkQueue[walkPos]];
+  walk.classList.remove('show-a');
+  document.getElementById('walkTopic').textContent = c[0];
+  document.getElementById('walkQ').textContent = c[1];
+  document.getElementById('walkA').textContent = c[2];
+  document.getElementById('walkCount').textContent = walkReviewed + ' reviewed';
+}
+document.getElementById('walkBtn').addEventListener('click', async () => {
+  buildWalkQueue(); walkPos = 0; walkReviewed = 0;
+  walk.classList.add('on'); renderWalk();
+  try { if (navigator.wakeLock) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+});
+document.getElementById('walkBody').addEventListener('click', () => {
+  if (!walk.classList.contains('show-a')) { walk.classList.add('show-a'); }
+  else { walkReviewed++; walkPos++; renderWalk(); }
+});
+document.getElementById('walkClose').addEventListener('click', () => {
+  walk.classList.remove('on');
+  if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+});
 
 // initial dashboard paint
 renderPath();
