@@ -158,6 +158,7 @@
     <button role="tab" aria-selected="false" data-tab="craft">Code Craft</button>
     <button role="tab" aria-selected="false" data-tab="deep">Deep Dive</button>
     <button role="tab" aria-selected="false" data-tab="exo">Exostar</button>
+    <button role="tab" aria-selected="false" data-tab="sys">System</button>
     <button role="tab" aria-selected="false" data-tab="cards">Drill</button>
   </nav>
 </header>
@@ -190,13 +191,15 @@
 
   <div class="card">
     <span class="eyebrow">How to use this app</span>
-    <h3>The daily loop (45 min)</h3>
+    <h3>The daily ritual — where this site fits</h3>
     <ol>
-      <li><b>One LeetCode problem</b> (15–20 min) — tiny example by hand → brute force out loud → code it.</li>
-      <li><b>One codebase question at work</b> (15 min) — one file, one question, one <code>file:line</code> answer.</li>
-      <li><b>Recall</b> (10 min) — the Drill tab here: flashcards until "got it", or one quiz run.</li>
+      <li><b>Morning / desk (30 min, NOT on this site):</b> one LeetCode problem in your IDE, one codebase question at work. This site never replaces writing code.</li>
+      <li><b>Any walk (10–15 min):</b> 🚶 Walk Mode. Say each answer out loud before tapping. It serves what you haven't mastered first.</li>
+      <li><b>Evening (5 min):</b> open the tab you're currently studying, read ONE card, tap its reveal question, then honestly mark or unmark "Learned". The streak counts the visit; the toggle counts the truth.</li>
+      <li><b>Friday:</b> one quiz run. Score under 8? The wrong answers name this weekend's rereads.</li>
+      <li><b>Sunday (2 min):</b> look at the Path bars, tick any milestone you truly passed, pick next week's tab.</li>
     </ol>
-    <p>Reading this page replaces <em>none</em> of those three. It's for the in-between moments — the train, the queue, the couch — turning dead time into reps.</p>
+    <p><b>One tab at a time, in order:</b> Java → Spring → SQL → DSA → Architecture → Identity → Code Craft → Deep Dive → Exostar → System. Finish a tab (all cards Learned) before moving on. Flashcards and Walk Mode mix everything — that interleaving is deliberate, it's what cements old topics while you study new ones.</p>
   </div>
 </section>
 
@@ -1437,6 +1440,152 @@ loaded by:  "SOTP Client Config" loader</pre>
   </div>
 </section>
 
+<!-- ================= SYSTEM DESIGN ================= -->
+<section id="tab-sys" hidden>
+  <h2>System design — the platform below the code</h2>
+  <p class="lede">Networking, high availability, HSMs, and the infrastructure fork. Grounded in the platform's real architecture docs, kept at pattern level. This is what turns "the service returned 502" from a mystery into a checklist.</p>
+
+  <div class="card" data-learn="sys-1">
+    <span class="eyebrow">Networking</span>
+    <h3>Life of a request — the network half</h3>
+<pre>browser ─► DNS ─► edge (load balancer / WAF)
+                    │  TLS usually TERMINATES here
+                    │  adds X-Forwarded-For: &lt;real client IP&gt;
+                    │  adds X-Client-Cert:   &lt;user's cert, if presented&gt;
+                    ▼
+              reverse proxy ─► app host (Tomcat) ─► DB</pre>
+    <ul>
+      <li>Once TLS terminates at the edge, the app sees a connection <em>from the load balancer</em> — that's why the client's real IP must ride in <code>X-Forwarded-For</code>, and a presented client certificate rides in a header like <code>X-Client-Cert</code>.</li>
+      <li>Consequence: the app <b>trusts the edge</b> for those headers. If a request could reach the app without passing the edge, those headers could be forged — which is why the network is designed so it can't.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Logs show every request "coming from" the same internal IP. Broken?</button>
+      <div class="answer"><p>No — that's the load balancer's address, because it terminates the client connection and opens its own to the app. The real client IP is in X-Forwarded-For. Logging that header (and knowing it) is basic triage hygiene.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="sys-2">
+    <span class="eyebrow">Networking</span>
+    <h3>TLS and mutual TLS (mTLS)</h3>
+    <ul>
+      <li><b>TLS</b>: the server proves its identity with a certificate; traffic is encrypted. The browser padlock.</li>
+      <li><b>mTLS</b>: BOTH sides present certificates — the client proves its identity too. This is how API partners and internal system-to-system calls (portal ↔ MFA engine) authenticate.</li>
+      <li>Certificates expire. A forgotten renewal is the single most classic "everything broke at midnight, nothing was deployed" outage — and cert serial/case mismatches are a recurring integration bug class.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">A partner's API calls all start failing with handshake errors; your service didn't change. First two suspects?</button>
+      <div class="answer"><p>(1) An expired or rotated certificate on either side; (2) the trust configuration — their new cert isn't registered/trusted (or a mismatch in how the cert is recorded). Handshake failures are almost never application code.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="sys-3">
+    <span class="eyebrow">Networking</span>
+    <h3>Egress: outbound is locked down too</h3>
+    <p>In a hardened environment, servers can't call the internet freely. All outbound traffic routes through a proxy that is <b>deny-by-default</b>: only whitelisted destination FQDNs are allowed, and the proxy masks the caller's internal IP.</p>
+    <div class="reveal-box"><button type="button">New third-party integration works from your laptop, times out from the server. Diagnosis?</button>
+      <div class="answer"><p>Egress rules — the destination FQDN isn't on the outbound proxy's whitelist yet. Not DNS, not code. The fix is a firewall/proxy change request, and knowing that saves a day of code-side debugging.</p></div>
+    </div>
+    <div class="why"><b>Pattern:</b> "works locally, fails on the server" for outbound calls = egress. "Works on the server, fails for users" for inbound = edge/WAF. Direction tells you which wall to inspect.</div>
+  </div>
+
+  <div class="card" data-learn="sys-4">
+    <span class="eyebrow">Availability</span>
+    <h3>High availability: the two-leg model</h3>
+<pre>            ┌─► leg A: proxy ─ app hosts ─┐
+edge/LB ────┤                             ├─► SQL Always-On
+            └─► leg B: proxy ─ app hosts ─┘    (primary + sync replica,
+                (physically & logically         automatic failover)
+                 separate beyond the proxy)</pre>
+    <ul>
+      <li>Production runs two independent legs; each can carry the load alone. Databases use Always-On availability groups — a synchronized replica takes over on failure.</li>
+      <li>The payoff beyond surviving failures: <b>drain one leg, deploy to it, shift traffic back</b> — anytime deployments and maintenance with zero downtime.</li>
+      <li>Design question to ask of any component: "what happens when exactly one of these dies?" If the answer is "everything stops," you've found a single point of failure.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Half of all users see an error; the other half are fine. What does the two-leg model tell you?</button>
+      <div class="answer"><p>One leg is sick — bad deploy, dead host, or config drift on that leg only. Check which leg the failing sessions land on, then drain it. "Exactly half affected" is a topology clue, not a coincidence.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="sys-5">
+    <span class="eyebrow">Crypto infrastructure</span>
+    <h3>HSMs: where the keys really live</h3>
+    <p>An <b>HSM</b> (hardware security module) is a tamper-resistant device that holds cryptographic keys which <em>never leave it</em> — you send it data, it returns signatures/validations. The platform's OTP validation and prescription-signing keys live in HSM-backed infrastructure; cloud Key Vaults are the managed equivalent for newer components.</p>
+    <ul>
+      <li>Why: compliance (the signing key for controlled-substance prescriptions must be provably uncopyable) and breach containment (a stolen server image contains no keys).</li>
+      <li>Cost: HSMs are physical — capacity, redundancy, and geo-resilience require hardware planning, which is why "just run a second copy" is a project, not a checkbox.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Why can't the EPCS signing key just be a config secret in the database?</button>
+      <div class="answer"><p>A key in config can be read, copied, and exfiltrated — and you could never prove it wasn't. Non-repudiation ("only this system could have signed") requires the key to be physically incapable of leaving the module. Regulation demands that property.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="sys-6">
+    <span class="eyebrow">Two worlds</span>
+    <h3>IaaS vs PaaS: the same code, two operational lives</h3>
+    <div class="tablewrap"><table>
+      <tr><th></th><th>Commercial (IaaS)</th><th>Federal (PaaS)</th></tr>
+      <tr><td>Compute</td><td>Windows VMs + Tomcat</td><td>Azure App Service</td></tr>
+      <tr><td>Edge</td><td>F5 load balancer</td><td>App Gateway + WAF</td></tr>
+      <tr><td>Database</td><td>SQL Server on VMs</td><td>Azure SQL Managed Instance</td></tr>
+      <tr><td>Logs</td><td>Splunk (files on hosts)</td><td>cloud log analytics</td></tr>
+      <tr><td>Deploy</td><td>scripts to VMs</td><td>pipeline to App Service</td></tr>
+    </table></div>
+    <p>Same WARs, separate databases, Key Vaults, pipelines, and infrastructure — a compliance boundary, not a code fork. Every skill you build must work in both worlds: "where do I read logs?" has two answers for every service.</p>
+    <div class="reveal-box"><button type="button">Why run two parallel platforms instead of one hardened one?</button>
+      <div class="answer"><p>Federal compliance (FedRAMP-class) demands isolation: separate infrastructure, data, personnel rules, and change control. Commercial customers don't pay that overhead. The seam is operational, deliberately not architectural — one codebase keeps features in sync.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="sys-7">
+    <span class="eyebrow">Federation</span>
+    <h3>The SSO hub — and strangler at the network layer</h3>
+    <p>A federation server (PingFederate) sits at the center: users authenticate once, and it mints signed assertions for every connected application (the Identity tab's IdP/SP card, deployed). Two system-design lessons from its operation:</p>
+    <ul>
+      <li>Each partner/application is a <b>connection</b> with its own certificates, claims mapping, and lifecycle — federation outages are usually one connection's config, not the hub.</li>
+      <li>During platform migrations, the load balancer can route <em>per connection</em> — old federation stack for most, new stack for migrated ones. The strangler pattern, implemented in network routing: migrate one integration at a time, big-bang never.</li>
+    </ul>
+  </div>
+
+  <div class="card" data-learn="sys-8">
+    <span class="eyebrow">Operations</span>
+    <h3>Observability: is it down, slow, or lying?</h3>
+    <ul>
+      <li><b>Health endpoints</b> (<code>/actuator/health</code>) answer "is the process up and can it reach its dependencies?" — the first curl of every incident.</li>
+      <li><b>Centralized logs</b> (Splunk / log analytics) answer "what happened?" — searchable across hosts, because you'll never RDP to eight machines fast enough.</li>
+      <li><b>Metrics</b> answer "how is it trending?" — error rates, latencies, pool usage. Slow is a different disease than down.</li>
+      <li>Correlate across services with shared IDs (trace/error refs in responses map to log entries) — that reference in an error response is the thread to pull.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Health check green, users reporting failures. What class of problem is left?</button>
+      <div class="answer"><p>The process is up but a specific path is broken: one endpoint erroring, one dependency degraded (health checks it shallowly), one leg bad behind the LB, or auth failing before requests reach the app. Green health narrows the search — it doesn't end it.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="sys-9">
+    <span class="eyebrow">Operations</span>
+    <h3>CI/CD + Infrastructure as Code</h3>
+    <ul>
+      <li>Pipelines: build-and-publish (compile, test, version the artifact) → deploy (push that exact artifact per environment). The same artifact climbs DEV → QA → UAT → PROD — <b>promotion</b>, never rebuilding per environment.</li>
+      <li>Infrastructure as Code (Terraform): the environment itself is versioned code — <em>plan</em> shows the diff on a PR, <em>apply</em> executes on merge. Clicking around a cloud console creates drift nobody can reproduce.</li>
+      <li>Why parity matters: every "works in UAT, fails in PROD" is an environment diff — config value, cert, firewall rule, data shape. IaC shrinks that list; it never empties it.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Why promote one built artifact instead of rebuilding from the same tag per environment?</button>
+      <div class="answer"><p>Rebuilds can differ (dependency drift, build-time config, timestamps). Promoting the identical binary means what you tested IS what ships — the only variables left are environment config and data.</p></div>
+    </div>
+  </div>
+
+  <div class="card" data-learn="sys-10">
+    <span class="eyebrow">Scale & recovery</span>
+    <h3>Scaling and disaster recovery</h3>
+    <ul>
+      <li><b>Horizontal scaling</b> (more instances) requires statelessness — any instance must serve any request. That's the deep reason services keep no per-user state in memory (the Java thread-safety card, at system scale).</li>
+      <li>The database is the shared bottleneck: 10 instances × 30-connection pools = 300 connections hitting one primary. Scaling apps without watching the DB just moves the queue.</li>
+      <li><b>DR vocabulary</b>: RTO = how long you may be down; RPO = how much data you may lose. Geo-redundancy (customer-driven requirement) means surviving the loss of an entire site — active/active or a warm standby region.</li>
+      <li>A DR plan that's never been exercised is a document, not a capability.</li>
+    </ul>
+    <div class="reveal-box"><button type="button">Why does "just add more app instances" sometimes make an incident worse?</button>
+      <div class="answer"><p>If the DB (or a downstream dependency) is the bottleneck, more instances add more connections and more retry pressure on the thing that's drowning. Scale the constraint, not the thing in front of it.</p></div>
+    </div>
+  </div>
+</section>
+
 <!-- ================= DRILL (flashcards + quiz) ================= -->
 <section id="tab-cards" hidden>
   <h2>Drill — recall beats rereading</h2>
@@ -1518,7 +1667,7 @@ const savedTheme = localStorage.getItem('cc-theme');
 if (savedTheme) root.dataset.theme = savedTheme;
 
 // ---------- learned toggles ----------
-const TOPICS = {java:'Java', spring:'Spring', sql:'SQL', dsa:'DSA', arch:'Architecture', id:'Identity', craft:'Code Craft', deep:'Deep Dive', exo:'Exostar'};
+const TOPICS = {java:'Java', spring:'Spring', sql:'SQL', dsa:'DSA', arch:'Architecture', id:'Identity', craft:'Code Craft', deep:'Deep Dive', exo:'Exostar', sys:'System'};
 let learned = new Set(JSON.parse(localStorage.getItem('cc-learned') || '[]'));
 document.querySelectorAll('.card[data-learn]').forEach(card => {
   const id = card.dataset.learn;
@@ -1668,7 +1817,16 @@ const CARDS = [
  ["Exostar","Which checks gate EPCS signing in SotpSignatureHelper?","testCredEligible (ACTIVE + bound, unbound only if client config allows) and testProcessEligible (blocked while proofing in progress); then SfSigner signs the digests."],
  ["Exostar","Where does 'the user never got the email' triage run, by name?","APP_EVENT row (did it fire?) → Azure Service Bus → iam-event-handler log (consumed?) → iam-email log (template rendered/sent?)."],
  ["Exostar","What is the DNA pattern in iam-cred-mgmt?","One *SotpCredHelper + *SotpCredTypeFactory per product (MAG/BAID/SAM) extending a shared base — product behavior as new classes, never conditionals."],
- ["Exostar","You changed a CONFIG_ITEM but legacy SOTP behaves old. Why?","Legacy loads XoConfig into memory at startup — it needs a soft reload. The frozen-config idea, legacy edition."]
+ ["Exostar","You changed a CONFIG_ITEM but legacy SOTP behaves old. Why?","Legacy loads XoConfig into memory at startup — it needs a soft reload. The frozen-config idea, legacy edition."],
+ ["System","Logs show every request from the same internal IP. Why, and where's the real one?","TLS terminates at the load balancer, which opens its own connection to the app. The client's real IP rides in X-Forwarded-For."],
+ ["System","How does a user's client certificate reach the app if TLS ends at the edge?","The edge validates it and forwards it in a header (X-Client-Cert). The app trusts the edge — which is why nothing may bypass the edge."],
+ ["System","Integration works from your laptop, times out from the server. Diagnosis?","Egress: outbound traffic goes through a deny-by-default proxy; the destination FQDN isn't whitelisted. Firewall request, not code fix."],
+ ["System","What is an HSM and what does the platform keep in one?","Tamper-resistant hardware whose keys can never leave it — OTP validation and EPCS prescription-signing keys. Non-repudiation requires uncopyable keys."],
+ ["System","What does the two-leg production model buy besides surviving failures?","Drain one leg, deploy to it, shift traffic back — zero-downtime anytime deployments and maintenance. 'Exactly half of users affected' = one sick leg."],
+ ["System","Why must services be stateless to scale horizontally?","Any instance must serve any request. In-memory per-user state pins users to instances and dies with them — state belongs in the DB or a shared store."],
+ ["System","RTO vs RPO?","RTO: how long you may be down (recovery time). RPO: how much data you may lose (recovery point). DR design starts from these two numbers."],
+ ["System","Health check green but users failing — what's left?","Path-specific breakage: one endpoint, one shallowly-checked dependency, one bad leg behind the LB, or auth rejecting before the app. Green narrows; it doesn't clear."],
+ ["System","Why promote one built artifact through DEV→QA→UAT→PROD instead of rebuilding?","Rebuilds can differ (dependency drift, build config). Promoting the identical binary means what you tested is what ships — only env config and data vary."]
 ];
 
 let order = CARDS.map((_, i) => i);
@@ -1766,7 +1924,16 @@ const QUIZ = [
   "Two engines share the tables; the flag says which one owns the record. v01 → legacy SOTP, v02 → iam-mfa-mgmt. Debugging the wrong engine wastes hours."],
  ["EPCS signing fails for a prescriber mid-proofing. Which gate refused?",
   ["testCredEligible","testProcessEligible — signing is blocked while proofing is in progress","SfSigner","The message bus"],1,
-  "The signature asserts a verified person signed; mid-proofing that isn't true yet. testProcessEligible enforces it as a state guard."]
+  "The signature asserts a verified person signed; mid-proofing that isn't true yet. testProcessEligible enforces it as a state guard."],
+ ["The app must know the end user's real IP, but TLS terminates at the load balancer. How?",
+  ["Reverse DNS lookup","The edge adds it as an X-Forwarded-For header","The TCP packet preserves it","It can't be done"],1,
+  "The LB terminates the client connection and opens its own — so the app's socket shows the LB's IP. The edge forwards the real client IP (and any client cert) in trusted headers."],
+ ["A new outbound API call times out from the server but works from a laptop. Most likely cause?",
+  ["DNS is down","The deny-by-default egress proxy hasn't whitelisted the destination","The API requires Java 17","Thread pool exhaustion"],1,
+  "Hardened environments route all outbound traffic through a filtering proxy that only allows whitelisted FQDNs. New destination = firewall change request, not a code fix."],
+ ["Exactly half of all users are hitting errors; the rest are fine. Best first hypothesis?",
+  ["Random chance","One leg of the two-leg HA topology is sick — check and drain it","Database is down (it would be everyone)","A bad browser update"],1,
+  "Two independent legs each carry ~half the traffic. A clean 50/50 failure split points at one leg's deploy, host, or config — topology is telling you where to look."]
 ];
 let qOrder = [], qPos = 0, qScore = 0;
 function startQuiz(){
